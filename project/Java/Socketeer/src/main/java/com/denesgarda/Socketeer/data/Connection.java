@@ -13,39 +13,13 @@ public class Connection {
     private End THIS;
     private End THAT;
     private int port;
-    private Timer timer;
     private Listener listener;
 
-    protected Connection(End THIS, End THAT, int port, Listener listener) throws IOException {
+    protected Connection(End THIS, End THAT, int port, Listener listener) {
         this.THIS = THIS;
         this.THAT = THAT;
         this.port = port;
         this.listener = listener;
-        this.send("01101100 01101001 01110011 01110100 01100101 01101110 00100000 01110011 01110100 01100001 01110010 01110100");
-    }
-
-    protected void keep() throws IOException {
-        this.timer = new Timer();
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    Socket socket = new Socket(THAT.getAddress(), port);
-                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                    objectOutputStream.writeObject("01101011 01100101 01100101 01110000");
-                    socket.close();
-                }
-                catch(IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        this.timer.scheduleAtFixedRate(timerTask, 0, 5000);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::kill));
-    }
-
-    public void kill() {
-        //kill
     }
 
     public void send(Object object) throws IOException {
@@ -56,7 +30,7 @@ public class Connection {
         socket.close();
     }
 
-    public End getEnd() {
+    public End getOtherEnd() {
         return this.THAT;
     }
 }

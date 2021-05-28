@@ -1,24 +1,23 @@
 package com.denesgarda.Socketeer.data;
 
-import com.denesgarda.Socketeer.data.event.ConnectionCloseEvent;
-import com.denesgarda.Socketeer.data.event.ConnectionOpenEvent;
+import com.denesgarda.Socketeer.data.event.ConnectionEvent;
 import com.denesgarda.Socketeer.data.event.Event;
 import com.denesgarda.Socketeer.data.event.Listener;
+import com.denesgarda.Socketeer.data.event.ReceivedEvent;
 
 import java.io.*;
 import java.net.*;
-import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Logger;
 
-public class End implements Listener{
+public class End {
     private String address;
     private Listener listener;
 
     protected End() throws UnknownHostException {
         this.address = InetAddress.getLocalHost().getHostName();
     }
-    private End(String address) {
+
+    private End(String address) throws UnknownHostException {
         this.address = address;
     }
 
@@ -26,67 +25,47 @@ public class End implements Listener{
         this.listener = listener;
     }
 
-    public String getAddress() {
-        return address;
+    private void voidListener() {
+        this.listener = new Listener() {
+            @Override
+            public void event(Event event) {
+
+            }
+        };
     }
 
     public Connection connect(String address, int port) throws IOException {
-        Connection connection = new Connection(this, new End(address), port, listener);
-        //connection.keep();
-        return connection;
+        if(listener == null) this.voidListener();
+        Socket socket = new Socket(address, port);
+        return new Connection(this, new End(address), port, listener);
     }
 
     public void listen(int port) throws IOException {
-        if(listener == null) {
-            listener = this;
-        }
-        Logger logger = Logger.getLogger(End.class.getName());
-        logger.info("Socketeer, version 1.0");
+        if(listener == null) this.voidListener();
         ServerSocket serverSocket = new ServerSocket(port);
-        Timer timer = new Timer();
+        End THIS = this;
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
                 try {
                     Socket socket = serverSocket.accept();
-                    InputStream inputStream = socket.getInputStream();
-                    OutputStream outputStream = socket.getOutputStream();
-                    Connection connection = new Connection(new End(address), new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener);
-                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                    try {
-                        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-                        String reading = (String) objectInputStream.readObject();
-                        if(reading.equals("01101011 01100101 01100101 01110000")) {
-                            objectOutputStream.writeObject("01101011 01100101 01100101 01110000");
-                        }
-                        else if(reading.equals("01101100 01101001 01110011 01110100 01100101 01101110 00100000 01110011 01110100 01100001 01110010 01110100")) {
-                            listener.event(new ConnectionOpenEvent(connection));
-                        }
-                        else {
-                            //listener.event(new DataReceivedEvent(connection, reading));
-                        }
-                    }
-                    catch(EOFException e) {
-                        listener.event(new ConnectionCloseEvent(connection));
-                    }
+                    Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener);
+                    listener.event(new ConnectionEvent(connection));
+                    ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                    Object o = objectInputStream.readObject();
+                    listener.event(new ReceivedEvent(connection, o));
                     socket.close();
+                    this.run();
                 }
-                catch(IOException | ClassNotFoundException e) {
+                catch(Exception e) {
                     e.printStackTrace();
                 }
             }
         };
-        timer.scheduleAtFixedRate(timerTask, 0, 5);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                serverSocket.close();
-            }
-            catch(IOException ignored) {}
-        }));
+        timerTask.run();
     }
 
-    @Override
-    public void event(Event event) {
-
+    public String getAddress() {
+        return this.address;
     }
 }

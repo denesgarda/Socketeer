@@ -2,8 +2,8 @@ package com.denesgarda.Socketeer.data.event;
 
 import com.denesgarda.Socketeer.data.Connection;
 
-public class ConnectionCloseEvent extends ConnectionEvent {
-    public ConnectionCloseEvent(Connection connection) {
+public class ConnectionSuccessfulEvent extends ConnectionEvent {
+    public ConnectionSuccessfulEvent(Connection connection) {
         super(connection);
     }
 }

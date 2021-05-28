@@ -5,6 +5,7 @@ import java.io.IOException;
 
 public class Client extends End {
     public Client() throws IOException {
-        Connection connection = this.connect("localhost", 12000);
+        Connection connection = this.connect("localhost", 11000);
+        connection.send("Hello");
     }
 }
