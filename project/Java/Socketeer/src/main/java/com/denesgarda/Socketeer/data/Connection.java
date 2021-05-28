@@ -20,11 +20,11 @@ public class Connection {
         this.THIS = THIS;
         this.THAT = THAT;
         this.port = port;
-        this.keep();
         this.listener = listener;
+        this.send("01101100 01101001 01110011 01110100 01100101 01101110 00100000 01110011 01110100 01100001 01110010 01110100");
     }
 
-    private void keep() throws IOException {
+    protected void keep() throws IOException {
         this.timer = new Timer();
         TimerTask timerTask = new TimerTask() {
             @Override
@@ -41,7 +41,6 @@ public class Connection {
             }
         };
         this.timer.scheduleAtFixedRate(timerTask, 0, 5000);
-        this.send("01101100 01101001 01110011 01110100 01100101 01101110 00100000 01110011 01110100 01100001 01110010 01110100");
         Runtime.getRuntime().addShutdownHook(new Thread(this::kill));
     }
 

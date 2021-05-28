@@ -1,6 +1,8 @@
 package com.denesgarda.Socketeer.data;
 
-import com.denesgarda.Socketeer.data.event.ConnectionEvent;
+import com.denesgarda.Socketeer.data.event.ConnectionCloseEvent;
+import com.denesgarda.Socketeer.data.event.ConnectionOpenEvent;
+import com.denesgarda.Socketeer.data.event.Event;
 import com.denesgarda.Socketeer.data.event.Listener;
 
 import java.io.*;
@@ -9,7 +11,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
-public class End {
+public class End implements Listener{
     private String address;
     private Listener listener;
 
@@ -29,10 +31,15 @@ public class End {
     }
 
     public Connection connect(String address, int port) throws IOException {
-        return new Connection(this, new End(address), port, listener);
+        Connection connection = new Connection(this, new End(address), port, listener);
+        //connection.keep();
+        return connection;
     }
 
     public void listen(int port) throws IOException {
+        if(listener == null) {
+            listener = this;
+        }
         Logger logger = Logger.getLogger(End.class.getName());
         logger.info("Socketeer, version 1.0");
         ServerSocket serverSocket = new ServerSocket(port);
@@ -53,14 +60,14 @@ public class End {
                             objectOutputStream.writeObject("01101011 01100101 01100101 01110000");
                         }
                         else if(reading.equals("01101100 01101001 01110011 01110100 01100101 01101110 00100000 01110011 01110100 01100001 01110010 01110100")) {
-                            listener.event(new ConnectionEvent(connection));
+                            listener.event(new ConnectionOpenEvent(connection));
                         }
                         else {
                             //listener.event(new DataReceivedEvent(connection, reading));
                         }
                     }
                     catch(EOFException e) {
-                        //listener.event(new ListeningStopEvent(connection));
+                        listener.event(new ConnectionCloseEvent(connection));
                     }
                     socket.close();
                 }
@@ -76,5 +83,10 @@ public class End {
             }
             catch(IOException ignored) {}
         }));
+    }
+
+    @Override
+    public void event(Event event) {
+
     }
 }
