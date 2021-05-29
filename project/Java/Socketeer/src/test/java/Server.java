@@ -1,8 +1,5 @@
 import com.denesgarda.Socketeer.data.End;
-import com.denesgarda.Socketeer.data.event.ConnectionEvent;
-import com.denesgarda.Socketeer.data.event.Event;
-import com.denesgarda.Socketeer.data.event.Listener;
-import com.denesgarda.Socketeer.data.event.ReceivedEvent;
+import com.denesgarda.Socketeer.data.event.*;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -15,11 +12,14 @@ public class Server extends End implements Listener {
 
     @Override
     public void event(Event event) {
-        if(event instanceof ConnectionEvent) {
+        if(event instanceof ConnectionSuccessfulEvent) {
             System.out.println("Client connected: " + ((ConnectionEvent) event).getConnection().getOtherEnd().getAddress());
         }
         else if(event instanceof ReceivedEvent) {
             System.out.println("Received: " + ((ReceivedEvent) event).getObject());
+        }
+        else if(event instanceof DisconnectEvent) {
+            System.out.println("Client disconnected: ");
         }
     }
 }
