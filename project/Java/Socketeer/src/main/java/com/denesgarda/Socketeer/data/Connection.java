@@ -1,13 +1,12 @@
 package com.denesgarda.Socketeer.data;
 
-import com.denesgarda.Prop4j.data.PropertiesFile;
 import com.denesgarda.Socketeer.data.event.Listener;
+import com.denesgarda.Socketeer.data.lang.RestrictedObjectException;
 
-import java.io.*;
-import java.net.InetSocketAddress;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class Connection {
     private End THIS;
@@ -25,17 +24,28 @@ public class Connection {
     }
 
     public void send(Object object) throws IOException {
-        /*this.socket = new Socket(THAT.getAddress(), this.port);
-        OutputStream outputStream = socket.getOutputStream();
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-        objectOutputStream.writeObject(object);
-        outputStream.close();
-        objectOutputStream.close();*/
-        try (Socket socket = new Socket(THAT.getAddress(), this.port);
+        if(object.equals("01101011 01100101 01100101 01110000")) throw new RestrictedObjectException();
+        else try (Socket socket = new Socket(THAT.getAddress(), this.port);
              OutputStream os = socket.getOutputStream();
              ObjectOutputStream oos = new ObjectOutputStream(os)) {
             oos.writeObject(object);
         }
+    }
+    protected void overrideSend(Object object) throws IOException {
+        try (Socket socket = new Socket(THAT.getAddress(), this.port);
+                  OutputStream os = socket.getOutputStream();
+                  ObjectOutputStream oos = new ObjectOutputStream(os)) {
+            oos.writeObject(object);
+        }
+    }
+
+    public void close() throws IOException {
+        //close
+    }
+
+    @Override
+    protected void finalize() throws IOException {
+        this.close();
     }
 
     protected static void sendThroughSocket(Socket socket, Object object) throws IOException {
