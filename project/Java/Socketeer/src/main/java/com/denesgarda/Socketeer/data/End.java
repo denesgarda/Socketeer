@@ -3,9 +3,7 @@ package com.denesgarda.Socketeer.data;
 import com.denesgarda.Socketeer.data.event.*;
 import com.denesgarda.Socketeer.util.ArrayModification;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.net.*;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -65,8 +63,8 @@ public class End {
         if(listener == null) this.voidListener();
         Socket socket = new Socket(address, port);
         Connection.sendThroughSocket(socket, "01101011 01100101 01100101 01110000");
-        Connection connection = new Connection(this, new End(address), port, listener, socket);
-        Timer timer = new Timer();
+        Timer keeper = new Timer();
+        Connection connection = new Connection(this, new End(address), port, listener, socket, keeper);
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
@@ -77,8 +75,13 @@ public class End {
                 }
             }
         };
-        timer.scheduleAtFixedRate(timerTask, 5000, 5000);
+        keeper.scheduleAtFixedRate(timerTask, 0, 5000);
+        //read from server
         return connection;
+    }
+
+    public void kill(Connection connection) throws IOException {
+        connection.close();
     }
 
     public void listen(int port) throws IOException {
@@ -92,7 +95,7 @@ public class End {
                 try {
                     Socket socket = serverSocket.accept();
                     socket.setSoTimeout(10000);
-                    Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket);
+                    Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket, new Timer());
                     try {
                         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                         Object o = objectInputStream.readObject();

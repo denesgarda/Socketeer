@@ -16,6 +16,12 @@ public class Server extends End implements Listener {
         }
         else if(event instanceof ReceivedEvent) {
             System.out.println("Received: " + ((ReceivedEvent) event).getObject());
+            try {
+                ((ReceivedEvent) event).getConnection().send("Hello there");
+            }
+            catch(Exception e) {
+                e.printStackTrace();
+            }
         }
         else if(event instanceof DisconnectEvent) {
             System.out.println("Client disconnected: " + ((DisconnectEvent) event).getConnection().getOtherEnd().getAddress());

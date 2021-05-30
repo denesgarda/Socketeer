@@ -1,5 +1,8 @@
 package com.denesgarda.Socketeer.util;
 
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.Arrays;
 
 public class ArrayModification {

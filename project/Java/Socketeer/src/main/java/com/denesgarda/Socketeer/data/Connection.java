@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Connection {
     private End THIS;
@@ -14,13 +16,15 @@ public class Connection {
     private int port;
     private Listener listener;
     private Socket socket;
+    private Timer ping;
 
-    protected Connection(End THIS, End THAT, int port, Listener listener, Socket socket) {
+    protected Connection(End THIS, End THAT, int port, Listener listener, Socket socket, Timer ping) {
         this.THIS = THIS;
         this.THAT = THAT;
         this.port = port;
         this.listener = listener;
         this.socket = socket;
+        this.ping = ping;
     }
 
     public void send(Object object) throws IOException {
@@ -40,7 +44,8 @@ public class Connection {
     }
 
     public void close() throws IOException {
-        //close
+        ping.cancel();
+        ping.purge();
     }
 
     @Override

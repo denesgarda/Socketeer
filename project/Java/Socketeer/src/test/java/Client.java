@@ -8,5 +8,6 @@ public class Client extends End {
         Connection connection = this.connect("localhost", 11000);
         connection.send("Hello");
         connection.send("Hello again");
+        connection.close();
     }
 }
