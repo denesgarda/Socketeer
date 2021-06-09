@@ -2,6 +2,7 @@ package com.denesgarda.Socketeer.data;
 
 import com.denesgarda.Socketeer.data.event.*;
 import com.denesgarda.Socketeer.util.ArrayModification;
+import com.denesgarda.Socketeer.util.Events;
 
 import java.io.*;
 import java.net.*;
@@ -10,7 +11,7 @@ import java.util.TimerTask;
 
 public class End {
     private String address;
-    private Listener listener;
+    private End listener;
     private boolean listening = false;
     private Timeout[] connections = new Timeout[]{};
     private int connectionTimeout = 10;
@@ -24,7 +25,7 @@ public class End {
         this.address = address;
     }
 
-    public void addEventListener(Listener listener) {
+    public void addEventListener(End listener) {
         this.listener = listener;
     }
 
@@ -51,12 +52,7 @@ public class End {
     }
 
     private void voidListener() {
-        this.listener = new Listener() {
-            @Override
-            public void event(Event event) {
-
-            }
-        };
+        this.listener = this;
     }
 
     public Connection connect(String address, int port) throws IOException {
@@ -76,7 +72,6 @@ public class End {
             }
         };
         keeper.scheduleAtFixedRate(timerTask, 0, 5000);
-        //read from server
         return connection;
     }
 
@@ -108,7 +103,7 @@ public class End {
                                         @Override
                                         public void run() {
                                             connections = ArrayModification.remove(connections, timeout);
-                                            listener.event(new DisconnectEvent(connection));
+                                            Events.callEvent(listener, new DisconnectEvent(connection));
                                         }
                                     });
                                     timeout.startTimer();
@@ -116,9 +111,9 @@ public class End {
                                 }
                             }
                             if(!contains) {
-                                listener.event(new ConnectionAttemptEvent(connection));
+                                Events.callEvent(listener, new ConnectionAttemptEvent(connection));
                                 if(connectionThrottle != 0 && connections.length + 1 > connectionThrottle) {
-                                    listener.event(new ConnectionFailedEvent(connection));
+                                    Events.callEvent(listener, new ConnectionFailedEvent(connection));
                                     //send back failed message
                                 }
                                 else {
@@ -128,16 +123,16 @@ public class End {
                                         @Override
                                         public void run() {
                                             connections = ArrayModification.remove(connections, timeout);
-                                            listener.event(new DisconnectEvent(connection));
+                                            Events.callEvent(listener, new DisconnectEvent(connection));
                                         }
                                     });
                                     connections = ArrayModification.append(connections, timeout);
-                                    listener.event(new ConnectionSuccessfulEvent(connection));
+                                    Events.callEvent(listener, new ConnectionSuccessfulEvent(connection));
                                 }
                             }
                         }
                         else {
-                            listener.event(new ReceivedEvent(connection, o));
+                            Events.callEvent(listener, new ReceivedEvent(connection, o));
                         }
                         objectInputStream.close();
                         socket.close();

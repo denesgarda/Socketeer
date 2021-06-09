@@ -3,28 +3,29 @@ import com.denesgarda.Socketeer.data.event.*;
 
 import java.io.IOException;
 
-public class Server extends End implements Listener {
+public class Server extends End {
     public Server() throws IOException {
         this.addEventListener(this);
-        this.listen(11000);
+        this.listen(11111);
     }
 
-    @Override
-    public void event(Event event) {
-        if(event instanceof ConnectionSuccessfulEvent) {
-            System.out.println("Client connected: " + ((ConnectionEvent) event).getConnection().getOtherEnd().getAddress());
-        }
-        else if(event instanceof ReceivedEvent) {
-            System.out.println("Received: " + ((ReceivedEvent) event).getObject());
-            try {
-                ((ReceivedEvent) event).getConnection().send("Hello there");
-            }
-            catch(Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else if(event instanceof DisconnectEvent) {
-            System.out.println("Client disconnected: " + ((DisconnectEvent) event).getConnection().getOtherEnd().getAddress());
-        }
+    @EventHandler
+    public void onConnectionAttempt(ConnectionAttemptEvent event) {
+        System.out.println("Client connecting: " + event.getConnection().getOtherEnd().getAddress());
+    }
+
+    @EventHandler
+    public void onConnectionSuccessful(ConnectionSuccessfulEvent event) {
+        System.out.println("Client connected: " + event.getConnection().getOtherEnd().getAddress());
+    }
+
+    @EventHandler
+    public void onReceived(ReceivedEvent event) throws IOException {
+        System.out.println("Received: " + event.getObject());
+    }
+
+    @EventHandler
+    public void onDisconnect(DisconnectEvent event) {
+        System.out.println("Client disconnected: " + event.getConnection().getOtherEnd().getAddress());
     }
 }

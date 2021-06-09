@@ -1,6 +1,5 @@
 package com.denesgarda.Socketeer.data;
 
-import com.denesgarda.Socketeer.data.event.Listener;
 import com.denesgarda.Socketeer.data.lang.RestrictedObjectException;
 
 import java.io.IOException;
@@ -8,17 +7,16 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class Connection {
     private End THIS;
     private End THAT;
     private int port;
-    private Listener listener;
+    private End listener;
     private Socket socket;
     private Timer ping;
 
-    protected Connection(End THIS, End THAT, int port, Listener listener, Socket socket, Timer ping) {
+    protected Connection(End THIS, End THAT, int port, End listener, Socket socket, Timer ping) {
         this.THIS = THIS;
         this.THAT = THAT;
         this.port = port;
