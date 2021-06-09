@@ -10,12 +10,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class End {
-    private String address;
+    private final String address;
     private End listener;
     private boolean listening = false;
     private Timeout[] connections = new Timeout[]{};
     private int connectionTimeout = 10;
     private int connectionThrottle = 50;
+    private int soTimeout = 10;
 
     protected End() throws UnknownHostException {
         this.address = InetAddress.getLocalHost().getHostName();
@@ -38,6 +39,16 @@ public class End {
     }
     public void resetDefaultConnectionTimeout() {
         this.connectionTimeout = 10;
+    }
+
+    public void setSoTimeout(int seconds) {
+        this.soTimeout = seconds;
+    }
+    public int getSoTimeout() {
+        return this.soTimeout;
+    }
+    public void resetDefaultSoTimeout() {
+        this.soTimeout = 10;
     }
 
     public void setConnectionThrottle(int connections) {
@@ -89,7 +100,7 @@ public class End {
             public void run() {
                 try {
                     Socket socket = serverSocket.accept();
-                    socket.setSoTimeout(10000);
+                    socket.setSoTimeout(soTimeout * 1000);
                     Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket, new Timer());
                     try {
                         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
