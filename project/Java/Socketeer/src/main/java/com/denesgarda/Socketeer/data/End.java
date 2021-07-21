@@ -2,7 +2,11 @@ package com.denesgarda.Socketeer.data;
 
 import com.denesgarda.Socketeer.data.event.Listener;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class End {
@@ -42,5 +46,16 @@ public class End {
 
     public void setConnectionThrottle(int connectionThrottle) {
         this.connectionThrottle = connectionThrottle;
+    }
+
+    public void connectOneTime(String address, int port, OneTimeAction oneTimeAction) throws IOException {
+        Socket socket = new Socket(address, port);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+        Connection connection = new Connection(this, new End(address), port, listener, socket);
+        oneTimeAction.action(connection);
+        objectOutputStream.close();
+        objectInputStream.close();
+        socket.close();
     }
 }
