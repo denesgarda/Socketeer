@@ -1,92 +1,178 @@
 package com.denesgarda.Socketeer.data;
 
-import com.denesgarda.Socketeer.data.event.ConnectionCloseEvent;
-import com.denesgarda.Socketeer.data.event.ConnectionOpenEvent;
-import com.denesgarda.Socketeer.data.event.Event;
-import com.denesgarda.Socketeer.data.event.Listener;
+import com.denesgarda.Socketeer.data.event.*;
+import com.denesgarda.Socketeer.util.ArrayModification;
+import com.denesgarda.Socketeer.util.Events;
 
 import java.io.*;
 import java.net.*;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Logger;
 
-public class End implements Listener{
-    private String address;
-    private Listener listener;
+public class End {
+    private final String address;
+    private End listener;
+    private boolean listening = false;
+    private Timeout[] connections = new Timeout[]{};
+    private int connectionTimeout = 10;
+    private int connectionThrottle = 50;
+    private int soTimeout = 10;
 
     protected End() throws UnknownHostException {
         this.address = InetAddress.getLocalHost().getHostName();
     }
-    private End(String address) {
+
+    private End(String address) throws UnknownHostException {
         this.address = address;
     }
 
-    public void addEventListener(Listener listener) {
+    public void addEventListener(End listener) {
         this.listener = listener;
     }
 
-    public String getAddress() {
-        return address;
+    public void setConnectionTimeout(int seconds) {
+        if(seconds <= 5) throw new IndexOutOfBoundsException("Connection timeout must be at least 6 seconds.");
+        else this.connectionTimeout = seconds;
+    }
+    public int getConnectionTimeout() {
+        return this.connectionTimeout;
+    }
+    public void resetDefaultConnectionTimeout() {
+        this.connectionTimeout = 10;
+    }
+
+    public void setSoTimeout(int seconds) {
+        this.soTimeout = seconds;
+    }
+    public int getSoTimeout() {
+        return this.soTimeout;
+    }
+    public void resetDefaultSoTimeout() {
+        this.soTimeout = 10;
+    }
+
+    public void setConnectionThrottle(int connections) {
+        if(connections < 0) throw new IndexOutOfBoundsException("Cannot have negative connection throttle.");
+        else this.connectionThrottle = connections;
+    }
+    public int getConnectionThrottle() {
+        return this.connectionThrottle;
+    }
+    public void resetDefaultConnectionThrottle() {
+        this.connectionThrottle = 50;
+    }
+
+    private void voidListener() {
+        this.listener = this;
     }
 
     public Connection connect(String address, int port) throws IOException {
-        Connection connection = new Connection(this, new End(address), port, listener);
-        //connection.keep();
+        if(listener == null) this.voidListener();
+        Socket socket = new Socket(address, port);
+        Connection.sendThroughSocket(socket, "01101011 01100101 01100101 01110000");
+        Timer keeper = new Timer();
+        Connection connection = new Connection(this, new End(address), port, listener, socket, keeper);
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    connection.overrideSend("01101011 01100101 01100101 01110000");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        keeper.scheduleAtFixedRate(timerTask, 0, 5000);
         return connection;
     }
 
+    public void kill(Connection connection) throws IOException {
+        connection.close();
+    }
+
     public void listen(int port) throws IOException {
-        if(listener == null) {
-            listener = this;
-        }
-        Logger logger = Logger.getLogger(End.class.getName());
-        logger.info("Socketeer, version 1.0");
+        listening = true;
+        if(listener == null) this.voidListener();
         ServerSocket serverSocket = new ServerSocket(port);
-        Timer timer = new Timer();
+        End THIS = this;
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
                 try {
                     Socket socket = serverSocket.accept();
-                    InputStream inputStream = socket.getInputStream();
-                    OutputStream outputStream = socket.getOutputStream();
-                    Connection connection = new Connection(new End(address), new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener);
-                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                    socket.setSoTimeout(soTimeout * 1000);
+                    Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket, new Timer());
                     try {
-                        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-                        String reading = (String) objectInputStream.readObject();
-                        if(reading.equals("01101011 01100101 01100101 01110000")) {
-                            objectOutputStream.writeObject("01101011 01100101 01100101 01110000");
-                        }
-                        else if(reading.equals("01101100 01101001 01110011 01110100 01100101 01101110 00100000 01110011 01110100 01100001 01110010 01110100")) {
-                            listener.event(new ConnectionOpenEvent(connection));
+                        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                        Object o = objectInputStream.readObject();
+                        if(o.equals("01101011 01100101 01100101 01110000")) {
+                            boolean contains = false;
+                            for (Timeout timeout : connections) {
+                                if (timeout.getAddress().equals(connection.getOtherEnd().getAddress())) {
+                                    contains = true;
+                                    timeout.setTimerTask(new TimerTask() {
+                                        @Override
+                                        public void run() {
+                                            connections = ArrayModification.remove(connections, timeout);
+                                            Events.callEvent(listener, new DisconnectEvent(connection));
+                                        }
+                                    });
+                                    timeout.startTimer();
+                                    break;
+                                }
+                            }
+                            if(!contains) {
+                                Events.callEvent(listener, new ConnectionAttemptEvent(connection));
+                                if(connectionThrottle != 0 && connections.length + 1 > connectionThrottle) {
+                                    Events.callEvent(listener, new ConnectionFailedEvent(connection));
+                                    //send back failed message
+                                }
+                                else {
+                                    Timeout timeout = new Timeout(connection.getOtherEnd().getAddress());
+                                    timeout.setDelay(connectionTimeout * 1000);
+                                    timeout.setTimerTask(new TimerTask() {
+                                        @Override
+                                        public void run() {
+                                            connections = ArrayModification.remove(connections, timeout);
+                                            Events.callEvent(listener, new DisconnectEvent(connection));
+                                        }
+                                    });
+                                    connections = ArrayModification.append(connections, timeout);
+                                    Events.callEvent(listener, new ConnectionSuccessfulEvent(connection));
+                                }
+                            }
                         }
                         else {
-                            //listener.event(new DataReceivedEvent(connection, reading));
+                            Events.callEvent(listener, new ReceivedEvent(connection, o));
                         }
+                        objectInputStream.close();
+                        socket.close();
                     }
                     catch(EOFException e) {
-                        listener.event(new ConnectionCloseEvent(connection));
+                        e.printStackTrace();
                     }
-                    socket.close();
+                    if(listening) this.run();
+                    else serverSocket.close();
                 }
-                catch(IOException | ClassNotFoundException e) {
+                catch(Exception e) {
                     e.printStackTrace();
                 }
             }
         };
-        timer.scheduleAtFixedRate(timerTask, 0, 5);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                serverSocket.close();
+        timerTask.run();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                THIS.stopListening();
             }
-            catch(IOException ignored) {}
-        }));
+        });
     }
 
-    @Override
-    public void event(Event event) {
+    public void stopListening() {
+        listening = false;
+    }
 
+    public String getAddress() {
+        return this.address;
     }
 }
