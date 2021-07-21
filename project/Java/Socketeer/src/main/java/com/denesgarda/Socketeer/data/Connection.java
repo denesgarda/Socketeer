@@ -14,6 +14,8 @@ public class Connection {
     private Listener listener;
     private Socket socket;
 
+    protected boolean open = true;
+
     protected Connection(End THIS, End THAT, int port, Listener listener, Socket socket) {
         this.THIS = THIS;
         this.THAT = THAT;
@@ -26,36 +28,78 @@ public class Connection {
         this.socket = new Socket(THAT.getAddress(), this.port);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(this.socket.getOutputStream());
         ObjectInputStream objectInputStream = new ObjectInputStream(this.socket.getInputStream());
-        switch(writeDataType) {
-            case UTF -> objectOutputStream.writeUTF((String) object);
-            case INTEGER -> objectOutputStream.write((int) object);
-            case BYTE -> objectOutputStream.writeByte((byte) object);
-            case BYTE_ARRAY -> objectOutputStream.write((byte[]) object);
-            case CHAR -> objectOutputStream.writeChar((char) object);
-            case LONG -> objectOutputStream.writeLong((long) object);
-            case FLOAT -> objectOutputStream.writeFloat((float) object);
-            case DOUBLE -> objectOutputStream.writeDouble((double) object);
-            case BOOLEAN -> objectOutputStream.writeBoolean((boolean) object);
-            case OBJECT -> objectOutputStream.writeObject(object);
+        if(writeDataType == DataType.UTF) {
+            objectOutputStream.writeUTF((String) object);
+        }
+        else if(writeDataType == DataType.INTEGER) {
+            objectOutputStream.write((int) object);
+        }
+        else if(writeDataType == DataType.BYTE) {
+            objectOutputStream.writeByte((byte) object);
+        }
+        else if(writeDataType == DataType.BYTE_ARRAY) {
+            objectOutputStream.write((byte[]) object);
+        }
+        else if(writeDataType == DataType.CHAR) {
+            objectOutputStream.writeChar((char) object);
+        }
+        else if(writeDataType == DataType.LONG) {
+            objectOutputStream.writeLong((long) object);
+        }
+        else if(writeDataType == DataType.FLOAT) {
+            objectOutputStream.writeFloat((float) object);
+        }
+        else if(writeDataType == DataType.DOUBLE) {
+            objectOutputStream.writeDouble((double) object);
+        }
+        else if(writeDataType == DataType.BOOLEAN) {
+            objectOutputStream.writeBoolean((boolean) object);
+        }
+        else if(writeDataType == DataType.OBJECT) {
+            objectOutputStream.writeObject(object);
         }
         Object response;
-        switch(readDataType) {
-            case UTF -> response = objectInputStream.readUTF();
-            case INTEGER -> response = objectInputStream.read();
-            case BYTE -> response = objectInputStream.readByte();
-            case BYTE_ARRAY -> response = objectInputStream.readAllBytes();
-            case CHAR -> response = objectInputStream.readChar();
-            case LONG -> response = objectInputStream.readLong();
-            case FLOAT -> response = objectInputStream.readFloat();
-            case DOUBLE -> response = objectInputStream.readDouble();
-            case BOOLEAN -> response = objectInputStream.readBoolean();
-            case OBJECT -> response = objectInputStream.readObject();
-            default -> throw new IllegalStateException("Unexpected value: " + readDataType);
+        if(readDataType == DataType.UTF) {
+            response = objectInputStream.readUTF();
+        }
+        else if(readDataType == DataType.INTEGER) {
+            response = objectInputStream.read();
+        }
+        else if(readDataType == DataType.BYTE) {
+            response = objectInputStream.readByte();
+        }
+        else if(readDataType == DataType.BYTE_ARRAY) {
+            response = objectInputStream.readAllBytes();
+        }
+        else if(readDataType == DataType.CHAR) {
+            response = objectInputStream.readChar();
+        }
+        else if(readDataType == DataType.LONG) {
+            response = objectInputStream.readLong();
+        }
+        else if(readDataType == DataType.FLOAT) {
+            response = objectInputStream.readFloat();
+        }
+        else if(readDataType == DataType.DOUBLE) {
+            response = objectInputStream.readDouble();
+        }
+        else if(readDataType == DataType.BOOLEAN) {
+            response = objectInputStream.readBoolean();
+        }
+        else if(readDataType == DataType.OBJECT) {
+            response = objectInputStream.readObject();
+        }
+        else {
+            throw new IllegalStateException("Unexpected value: " + readDataType);
         }
         objectOutputStream.close();
         objectInputStream.close();
         socket.close();
         socket = null;
         return response;
+    }
+
+    public boolean isOpen() {
+        return this.open;
     }
 }
