@@ -1,9 +1,5 @@
 package com.denesgarda.Socketeer.util;
 
-import com.denesgarda.Socketeer.data.End;
-import com.denesgarda.Socketeer.data.event.Event;
-import com.denesgarda.Socketeer.data.event.EventHandler;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
