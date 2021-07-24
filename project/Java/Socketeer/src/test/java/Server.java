@@ -1,8 +1,5 @@
-import com.denesgarda.Socketeer.data.DataType;
 import com.denesgarda.Socketeer.data.End;
-import com.denesgarda.Socketeer.data.event.EventHandler;
-import com.denesgarda.Socketeer.data.event.Listener;
-import com.denesgarda.Socketeer.data.event.ReceivedEvent;
+import com.denesgarda.Socketeer.data.event.*;
 
 import java.io.IOException;
 
@@ -17,12 +14,19 @@ public class Server extends End implements Listener {
     }
 
     @EventHandler
+    public void onClientConnected(ClientConnectedEvent event) {
+        System.out.println(event.getConnection().getOtherEnd().getAddress() + " connected using " + event.getConnectionType());
+    }
+
+    @EventHandler
     public void onReceived(ReceivedEvent event) throws Exception {
-        System.out.println(1);
-        String message = (String) event.read(DataType.UTF);
-        System.out.println(2);
-        event.reply("Mabes", DataType.UTF);
-        System.out.println(3);
-        System.out.println(message);
+        String message = (String) event.read();
+        System.out.println("Message received from " + event.getConnection().getOtherEnd().getAddress() + ": " + message);
+        event.reply("This is the server's reply");
+    }
+
+    @EventHandler
+    public void onClientDisconnected(ClientDisconnectedEvent event) {
+        System.out.println(event.getConnection().getOtherEnd().getAddress() + " disconnected");
     }
 }

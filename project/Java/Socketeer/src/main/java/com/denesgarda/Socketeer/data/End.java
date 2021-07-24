@@ -1,8 +1,8 @@
 package com.denesgarda.Socketeer.data;
 
-import com.denesgarda.Socketeer.data.event.Event;
-import com.denesgarda.Socketeer.data.event.Listener;
-import com.denesgarda.Socketeer.data.event.ReceivedEvent;
+import com.denesgarda.Socketeer.data.event.*;
+import com.denesgarda.Socketeer.data.lang.ConnectionFailedException;
+import com.denesgarda.Socketeer.util.ArrayModification;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,6 +15,7 @@ public class End {
     private boolean listening = false;
     private int connectionTimeout = 10;
     private int connectionThrottle = 50;
+    private String[] openConnections = new String[]{};
 
     protected End() throws UnknownHostException {
         this.address = InetAddress.getLocalHost().getHostName();
@@ -37,6 +38,9 @@ public class End {
     }
 
     public void setConnectionTimeout(int connectionTimeout) {
+        if(connectionTimeout < 1) {
+            throw new IllegalStateException("Connection timeout cannot be less than 1 second");
+        }
         this.connectionTimeout = connectionTimeout;
     }
 
@@ -45,6 +49,9 @@ public class End {
     }
 
     public void setConnectionThrottle(int connectionThrottle) {
+        if(connectionThrottle < 0) {
+            throw new IllegalStateException("Connection throttle must be positive");
+        }
         this.connectionThrottle = connectionThrottle;
     }
 
@@ -52,116 +59,88 @@ public class End {
         Socket socket = new Socket(address, port);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-        Connection connection = new Connection(this, new End(address), port, listener, socket);
-        oneTimeAction.action(connection);
-        connection.open = false;
+        objectOutputStream.writeObject("01101111 01101110 01100101 01010100 01101001 01101101 01100101 01000011 01101111 01101110 01101110 01100101 01100011 01110100 01101001 01101111 01101110");
+        objectOutputStream.flush();
+        Object reply = objectInputStream.readObject();
         objectOutputStream.close();
         objectInputStream.close();
         socket.close();
+        if(reply.equals("01101111 01101011")) {
+            Connection connection = new Connection(this, new End(address), port, listener, socket);
+            oneTimeAction.action(connection);
+            connection.open = false;
+
+        }
+        else {
+            throw new ConnectionFailedException((String) reply);
+        }
     }
 
     public void listen(int port) throws IOException {
         listening = true;
         ServerSocket serverSocket = new ServerSocket(port);
         End THIS = this;
-        Runnable runnable = new Runnable() {
+        new Runnable() {
             @Override
             public void run() {
-                while(THIS.listening) {
+                while(listening) {
                     try {
                         Socket socket = serverSocket.accept();
                         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                         Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket);
-                        System.out.println(0);
-                        Event.callEvent(listener, new ReceivedEvent(connection) {
-                            @Override
-                            public Object read(DataType readDataType) throws Exception {
-                                if(readDataType == DataType.UTF) {
-                                    //return objectInputStream.readUTF();
-                                    return "Mooboos";
-                                }
-                                else if(readDataType == DataType.INTEGER) {
-                                    return objectInputStream.read();
-                                }
-                                else if(readDataType == DataType.BYTE) {
-                                    return objectInputStream.readByte();
-                                }
-                                else if(readDataType == DataType.BYTE_ARRAY) {
-                                    return objectInputStream.readAllBytes();
-                                }
-                                else if(readDataType == DataType.CHAR) {
-                                    return objectInputStream.readChar();
-                                }
-                                else if(readDataType == DataType.LONG) {
-                                    return objectInputStream.readLong();
-                                }
-                                else if(readDataType == DataType.FLOAT) {
-                                    return objectInputStream.readFloat();
-                                }
-                                else if(readDataType == DataType.DOUBLE) {
-                                    return objectInputStream.readDouble();
-                                }
-                                else if(readDataType == DataType.BOOLEAN) {
-                                    return objectInputStream.readBoolean();
-                                }
-                                else if(readDataType == DataType.OBJECT) {
-                                    return objectInputStream.readObject();
-                                }
-                                else {
-                                    throw new IllegalStateException("Unexpected value: " + readDataType);
-                                }
-                            }
-
-                            @Override
-                            public void reply(Object object, DataType writeDataType) throws IOException {
-                                if(writeDataType == DataType.UTF) {
-                                    objectOutputStream.writeUTF((String) object);
-                                }
-                                else if(writeDataType == DataType.INTEGER) {
-                                    objectOutputStream.write((int) object);
-                                }
-                                else if(writeDataType == DataType.BYTE) {
-                                    objectOutputStream.writeByte((byte) object);
-                                }
-                                else if(writeDataType == DataType.BYTE_ARRAY) {
-                                    objectOutputStream.write((byte[]) object);
-                                }
-                                else if(writeDataType == DataType.CHAR) {
-                                    objectOutputStream.writeChar((char) object);
-                                }
-                                else if(writeDataType == DataType.LONG) {
-                                    objectOutputStream.writeLong((long) object);
-                                }
-                                else if(writeDataType == DataType.FLOAT) {
-                                    objectOutputStream.writeFloat((float) object);
-                                }
-                                else if(writeDataType == DataType.DOUBLE) {
-                                    objectOutputStream.writeDouble((double) object);
-                                }
-                                else if(writeDataType == DataType.BOOLEAN) {
-                                    objectOutputStream.writeBoolean((boolean) object);
-                                }
-                                else if(writeDataType == DataType.OBJECT) {
-                                    objectOutputStream.writeObject(object);
-                                }
-                            }
-                        });
-                        System.out.println(9);
-                        objectInputStream.close();
+                        Object read = objectInputStream.readObject();
+                        if(connectionThrottle == 0) {
+                            doConnection(connection, read, objectOutputStream);
+                        }
+                        else if(openConnections.length >= connectionThrottle) {
+                            objectOutputStream.writeObject("Connection refused; connection throttle");
+                        }
+                        else {
+                            doConnection(connection, read, objectOutputStream);
+                        }
+                        objectOutputStream.flush();
                         objectOutputStream.close();
+                        objectInputStream.close();
                         socket.close();
+                        connection.open = false;
                     }
                     catch(Exception e) {
                         e.printStackTrace();
                     }
                 }
             }
-        };
-        runnable.run();
+        }.run();
     }
 
     public void stopListening() {
         listening = false;
+    }
+
+    private void doConnection(Connection connection, Object read, ObjectOutputStream objectOutputStream) throws IOException {
+        boolean oneTimeConnection = false;
+        openConnections = ArrayModification.append(openConnections, connection.getOtherEnd().getAddress());
+        if (read.equals("01101111 01101110 01100101 01010100 01101001 01101101 01100101 01000011 01101111 01101110 01101110 01100101 01100011 01110100 01101001 01101111 01101110")) {
+            objectOutputStream.writeObject("01101111 01101011");
+            Event.callEvent(listener, new ClientConnectedEvent(connection, Connection.ConnectionType.ONE_TIME_CONNECTION));
+            oneTimeConnection = true;
+        } else {
+            Event.callEvent(listener, new ReceivedEvent(connection) {
+                @Override
+                public Object read() throws Exception {
+                    return read;
+                }
+
+                @Override
+                public void reply(Object object) throws Exception {
+                    objectOutputStream.writeObject(object);
+                }
+            });
+        }
+        if(oneTimeConnection) {
+            connection.open = false;
+            Event.callEvent(listener, new ClientDisconnectedEvent(connection));
+            openConnections = ArrayModification.remove(openConnections, connection.getOtherEnd().getAddress());
+        }
     }
 }
