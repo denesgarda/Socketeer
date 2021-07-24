@@ -111,6 +111,7 @@ public class SocketeerServer extends End {
                     while(listening) {
                         try {
                             Socket socket = serverSocket.accept();
+                            Event.callEvent(listener, new ClientConnectionAttemptedEvent(new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/",""))));
                             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                             Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket);
