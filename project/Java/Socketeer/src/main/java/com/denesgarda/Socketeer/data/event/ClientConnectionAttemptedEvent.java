@@ -24,7 +24,7 @@ public class ClientConnectionAttemptedEvent extends Event {
     }
 
     /**
-     * Gets the client that is trying to connect
+     * Gets the client that is trying to connect.
      * @return The client that is trying to connect
      */
     public End getClient() {

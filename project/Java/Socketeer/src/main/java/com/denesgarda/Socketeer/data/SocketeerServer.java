@@ -111,10 +111,10 @@ public class SocketeerServer extends End {
                     while(listening) {
                         try {
                             Socket socket = serverSocket.accept();
-                            Event.callEvent(listener, new ClientConnectionAttemptedEvent(new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/",""))));
                             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                             Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket);
+                            Event.callEvent(listener, new ClientConnectionAttemptedEvent(connection.getOtherEnd()));
                             Object read = objectInputStream.readObject();
                             if(connectionThrottle == 0 || openConnections.length < connectionThrottle) {
                                 boolean oneTimeConnection = false;
@@ -149,6 +149,7 @@ public class SocketeerServer extends End {
                             }
                             else {
                                 objectOutputStream.writeObject("Connection refused; connection throttle");
+                                Event.callEvent(listener, new ClientConnectionFailedEvent(connection.getOtherEnd()));
                             }
                             objectOutputStream.flush();
                             objectOutputStream.close();
