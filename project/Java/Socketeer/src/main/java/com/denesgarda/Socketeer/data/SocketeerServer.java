@@ -11,37 +11,93 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+/**
+ * This is the Server object
+ * @author denesgarda
+ */
 public class SocketeerServer extends End {
-    private Listener listener = new Listener() {};
-    private boolean listening = false;
-    private int connectionTimeout = 10;
-    private int connectionThrottle = 50;
-    private String[] openConnections = new String[]{};
 
+    /**
+     * The event listener of the server
+     */
+    private Listener listener = new Listener() {};
+
+    /**
+     * If the server is listening or not
+     */
+    private boolean listening = false;
+
+    /**
+     * The connection timeout of the server
+     * How long should the server wait for a client response before it registers it as disconnected
+     * @apiNote Not yet implemented
+     */
+    private int connectionTimeout = 10;
+
+    /**
+     * The connection throttle of the server
+     * The max amount of connections allowed on the server at one given time
+     */
+    private int connectionThrottle = 50;
+
+    /**
+     * The addresses of all clients currently connected to the server
+     */
+    public String[] openConnections = new String[]{};
+
+    /**
+     * The constructor of SocketeerServer
+     * @throws UnknownHostException
+     */
     protected SocketeerServer() throws UnknownHostException {
 
     }
 
+    /**
+     * Set the event listener of the server
+     * @param listener The event listener to be set
+     */
     public void setEventListener(Listener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Gets the connection timeout
+     * @return The connection timeout
+     */
     public int getConnectionTimeout() {
         return connectionTimeout;
     }
 
+    /**
+     * Sets the connection timeout
+     * @param seconds The desired connection timeout time in seconds
+     */
     public void setConnectionTimeout(int seconds) {
         connectionTimeout = seconds;
     }
 
+    /**
+     * Gets the connection throttle
+     * @return The connection throttle
+     */
     public int getConnectionThrottle() {
         return connectionThrottle;
     }
 
+    /**
+     * Sets the connection throttle
+     * @param connections The desired amount of connections for the connection throttle
+     */
     public void setConnectionThrottle(int connections) {
         this.connectionThrottle = connections;
     }
 
+    /**
+     * The method that starts the server
+     * @param port The port the server should be started on
+     * @throws IOException
+     */
     public void listen(int port) throws IOException {
         if(!listening) {
             listening = true;
@@ -104,15 +160,18 @@ public class SocketeerServer extends End {
         }
     }
 
+    /**
+     * The method that stops the server
+     */
     public void stopListening() {
         listening = false;
     }
 
+    /**
+     * If the server is listening or not
+     * @return If the server is listening or not
+     */
     public boolean isListening() {
         return listening;
-    }
-
-    public String[] getOpenConnections() {
-        return openConnections;
     }
 }
