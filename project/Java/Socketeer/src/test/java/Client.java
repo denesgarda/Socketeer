@@ -1,21 +1,19 @@
 import com.denesgarda.Socketeer.data.Connection;
 import com.denesgarda.Socketeer.data.End;
-import com.denesgarda.Socketeer.data.event.EventHandler;
-import com.denesgarda.Socketeer.data.event.ReceivedEvent;
-
-import java.io.IOException;
+import com.denesgarda.Socketeer.data.OneTimeAction;
 
 public class Client extends End {
-    public Client() throws IOException {
-        this.addEventListener(this);
-        Connection connection = this.connect("localhost", 11111);
-        connection.send("Hello");
-        connection.send("Hello again");
-        //connection.close();
+    public Client() throws Exception {
+        this.connectOneTime("localhost", 9000, new OneTimeAction() {
+            @Override
+            public void action(Connection connection) throws Exception {
+                String reply = (String) connection.send("Hello There!");
+                System.out.println(reply);
+            }
+        });
     }
 
-    @EventHandler
-    public void onReceived(ReceivedEvent event) {
-        System.out.println("Received: " + event.getObject());
+    public static void main(String[] args) throws Exception {
+        new Client();
     }
 }

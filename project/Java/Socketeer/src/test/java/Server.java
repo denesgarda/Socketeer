@@ -3,29 +3,30 @@ import com.denesgarda.Socketeer.data.event.*;
 
 import java.io.IOException;
 
-public class Server extends End {
-    public Server() throws IOException {
-        this.addEventListener(this);
-        this.listen(11111);
+public class Server extends End implements Listener {
+    protected Server() throws IOException {
+        this.setEventListener(this);
+        this.listen(9000);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new Server();
     }
 
     @EventHandler
-    public void onConnectionAttempt(ConnectionAttemptEvent event) {
-        System.out.println("Client connecting: " + event.getConnection().getOtherEnd().getAddress());
+    public void onClientConnected(ClientConnectedEvent event) {
+        System.out.println(event.getConnection().getOtherEnd().getAddress() + " connected using " + event.getConnectionType());
     }
 
     @EventHandler
-    public void onConnectionSuccessful(ConnectionSuccessfulEvent event) {
-        System.out.println("Client connected: " + event.getConnection().getOtherEnd().getAddress());
+    public void onReceived(ReceivedEvent event) throws Exception {
+        String message = (String) event.read();
+        System.out.println("Message received from " + event.getConnection().getOtherEnd().getAddress() + ": " + message);
+        event.reply("This is the server's reply");
     }
 
     @EventHandler
-    public void onReceived(ReceivedEvent event) throws IOException {
-        System.out.println("Received: " + event.getObject());
-    }
-
-    @EventHandler
-    public void onDisconnect(DisconnectEvent event) {
-        System.out.println("Client disconnected: " + event.getConnection().getOtherEnd().getAddress());
+    public void onClientDisconnected(ClientDisconnectedEvent event) {
+        System.out.println(event.getConnection().getOtherEnd().getAddress() + " disconnected");
     }
 }

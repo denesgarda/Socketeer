@@ -1,178 +1,146 @@
 package com.denesgarda.Socketeer.data;
 
 import com.denesgarda.Socketeer.data.event.*;
+import com.denesgarda.Socketeer.data.lang.ConnectionFailedException;
 import com.denesgarda.Socketeer.util.ArrayModification;
-import com.denesgarda.Socketeer.util.Events;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.*;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class End {
     private final String address;
-    private End listener;
+    private Listener listener = new Listener() {};
     private boolean listening = false;
-    private Timeout[] connections = new Timeout[]{};
     private int connectionTimeout = 10;
     private int connectionThrottle = 50;
-    private int soTimeout = 10;
+    private String[] openConnections = new String[]{};
 
     protected End() throws UnknownHostException {
         this.address = InetAddress.getLocalHost().getHostName();
     }
 
-    private End(String address) throws UnknownHostException {
+    private End(String address) {
         this.address = address;
     }
 
-    public void addEventListener(End listener) {
+    public String getAddress() {
+        return this.address;
+    }
+
+    public void setEventListener(Listener listener) {
         this.listener = listener;
     }
 
-    public void setConnectionTimeout(int seconds) {
-        if(seconds <= 5) throw new IndexOutOfBoundsException("Connection timeout must be at least 6 seconds.");
-        else this.connectionTimeout = seconds;
-    }
     public int getConnectionTimeout() {
         return this.connectionTimeout;
     }
-    public void resetDefaultConnectionTimeout() {
-        this.connectionTimeout = 10;
+
+    public void setConnectionTimeout(int connectionTimeout) {
+        if(connectionTimeout < 1) {
+            throw new IllegalStateException("Connection timeout cannot be less than 1 second");
+        }
+        this.connectionTimeout = connectionTimeout;
     }
 
-    public void setSoTimeout(int seconds) {
-        this.soTimeout = seconds;
-    }
-    public int getSoTimeout() {
-        return this.soTimeout;
-    }
-    public void resetDefaultSoTimeout() {
-        this.soTimeout = 10;
-    }
-
-    public void setConnectionThrottle(int connections) {
-        if(connections < 0) throw new IndexOutOfBoundsException("Cannot have negative connection throttle.");
-        else this.connectionThrottle = connections;
-    }
     public int getConnectionThrottle() {
-        return this.connectionThrottle;
-    }
-    public void resetDefaultConnectionThrottle() {
-        this.connectionThrottle = 50;
+        return connectionThrottle;
     }
 
-    private void voidListener() {
-        this.listener = this;
+    public void setConnectionThrottle(int connectionThrottle) {
+        if(connectionThrottle < 0) {
+            throw new IllegalStateException("Connection throttle must be positive");
+        }
+        this.connectionThrottle = connectionThrottle;
     }
 
-    public Connection connect(String address, int port) throws IOException {
-        if(listener == null) this.voidListener();
+    public void connectOneTime(String address, int port, OneTimeAction oneTimeAction) throws Exception {
         Socket socket = new Socket(address, port);
-        Connection.sendThroughSocket(socket, "01101011 01100101 01100101 01110000");
-        Timer keeper = new Timer();
-        Connection connection = new Connection(this, new End(address), port, listener, socket, keeper);
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    connection.overrideSend("01101011 01100101 01100101 01110000");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        keeper.scheduleAtFixedRate(timerTask, 0, 5000);
-        return connection;
-    }
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+        objectOutputStream.writeObject("01101111 01101110 01100101 01010100 01101001 01101101 01100101 01000011 01101111 01101110 01101110 01100101 01100011 01110100 01101001 01101111 01101110");
+        objectOutputStream.flush();
+        Object reply = objectInputStream.readObject();
+        objectOutputStream.close();
+        objectInputStream.close();
+        socket.close();
+        if(reply.equals("01101111 01101011")) {
+            Connection connection = new Connection(this, new End(address), port, listener, socket);
+            oneTimeAction.action(connection);
+            connection.open = false;
 
-    public void kill(Connection connection) throws IOException {
-        connection.close();
+        }
+        else {
+            throw new ConnectionFailedException((String) reply);
+        }
     }
 
     public void listen(int port) throws IOException {
         listening = true;
-        if(listener == null) this.voidListener();
         ServerSocket serverSocket = new ServerSocket(port);
         End THIS = this;
-        TimerTask timerTask = new TimerTask() {
+        new Runnable() {
             @Override
             public void run() {
-                try {
-                    Socket socket = serverSocket.accept();
-                    socket.setSoTimeout(soTimeout * 1000);
-                    Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket, new Timer());
+                while(listening) {
                     try {
+                        Socket socket = serverSocket.accept();
+                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-                        Object o = objectInputStream.readObject();
-                        if(o.equals("01101011 01100101 01100101 01110000")) {
-                            boolean contains = false;
-                            for (Timeout timeout : connections) {
-                                if (timeout.getAddress().equals(connection.getOtherEnd().getAddress())) {
-                                    contains = true;
-                                    timeout.setTimerTask(new TimerTask() {
-                                        @Override
-                                        public void run() {
-                                            connections = ArrayModification.remove(connections, timeout);
-                                            Events.callEvent(listener, new DisconnectEvent(connection));
-                                        }
-                                    });
-                                    timeout.startTimer();
-                                    break;
-                                }
-                            }
-                            if(!contains) {
-                                Events.callEvent(listener, new ConnectionAttemptEvent(connection));
-                                if(connectionThrottle != 0 && connections.length + 1 > connectionThrottle) {
-                                    Events.callEvent(listener, new ConnectionFailedEvent(connection));
-                                    //send back failed message
-                                }
-                                else {
-                                    Timeout timeout = new Timeout(connection.getOtherEnd().getAddress());
-                                    timeout.setDelay(connectionTimeout * 1000);
-                                    timeout.setTimerTask(new TimerTask() {
-                                        @Override
-                                        public void run() {
-                                            connections = ArrayModification.remove(connections, timeout);
-                                            Events.callEvent(listener, new DisconnectEvent(connection));
-                                        }
-                                    });
-                                    connections = ArrayModification.append(connections, timeout);
-                                    Events.callEvent(listener, new ConnectionSuccessfulEvent(connection));
-                                }
-                            }
+                        Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket);
+                        Object read = objectInputStream.readObject();
+                        if(connectionThrottle == 0) {
+                            doConnection(connection, read, objectOutputStream);
+                        }
+                        else if(openConnections.length >= connectionThrottle) {
+                            objectOutputStream.writeObject("Connection refused; connection throttle");
                         }
                         else {
-                            Events.callEvent(listener, new ReceivedEvent(connection, o));
+                            doConnection(connection, read, objectOutputStream);
                         }
+                        objectOutputStream.flush();
+                        objectOutputStream.close();
                         objectInputStream.close();
                         socket.close();
+                        connection.open = false;
                     }
-                    catch(EOFException e) {
+                    catch(Exception e) {
                         e.printStackTrace();
                     }
-                    if(listening) this.run();
-                    else serverSocket.close();
-                }
-                catch(Exception e) {
-                    e.printStackTrace();
                 }
             }
-        };
-        timerTask.run();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                THIS.stopListening();
-            }
-        });
+        }.run();
     }
 
     public void stopListening() {
         listening = false;
     }
 
-    public String getAddress() {
-        return this.address;
+    private void doConnection(Connection connection, Object read, ObjectOutputStream objectOutputStream) throws IOException {
+        boolean oneTimeConnection = false;
+        openConnections = ArrayModification.append(openConnections, connection.getOtherEnd().getAddress());
+        if (read.equals("01101111 01101110 01100101 01010100 01101001 01101101 01100101 01000011 01101111 01101110 01101110 01100101 01100011 01110100 01101001 01101111 01101110")) {
+            objectOutputStream.writeObject("01101111 01101011");
+            Event.callEvent(listener, new ClientConnectedEvent(connection, Connection.ConnectionType.ONE_TIME_CONNECTION));
+            oneTimeConnection = true;
+        } else {
+            Event.callEvent(listener, new ReceivedEvent(connection) {
+                @Override
+                public Object read() throws Exception {
+                    return read;
+                }
+
+                @Override
+                public void reply(Object object) throws Exception {
+                    objectOutputStream.writeObject(object);
+                }
+            });
+        }
+        if(oneTimeConnection) {
+            connection.open = false;
+            Event.callEvent(listener, new ClientDisconnectedEvent(connection));
+            openConnections = ArrayModification.remove(openConnections, connection.getOtherEnd().getAddress());
+        }
     }
 }

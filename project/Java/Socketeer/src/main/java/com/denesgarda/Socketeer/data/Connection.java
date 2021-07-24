@@ -1,61 +1,59 @@
 package com.denesgarda.Socketeer.data;
 
+import com.denesgarda.Socketeer.data.event.Listener;
 import com.denesgarda.Socketeer.data.lang.RestrictedObjectException;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Timer;
 
 public class Connection {
     private End THIS;
     private End THAT;
     private int port;
-    private End listener;
+    private Listener listener;
     private Socket socket;
-    private Timer ping;
 
-    protected Connection(End THIS, End THAT, int port, End listener, Socket socket, Timer ping) {
+    protected boolean open = true;
+
+    protected Connection(End THIS, End THAT, int port, Listener listener, Socket socket) {
         this.THIS = THIS;
         this.THAT = THAT;
         this.port = port;
         this.listener = listener;
         this.socket = socket;
-        this.ping = ping;
-    }
-
-    public void send(Object object) throws IOException {
-        if(object.equals("01101011 01100101 01100101 01110000")) throw new RestrictedObjectException();
-        else try (Socket socket = new Socket(THAT.getAddress(), this.port);
-             OutputStream os = socket.getOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(os)) {
-            oos.writeObject(object);
-        }
-    }
-    protected void overrideSend(Object object) throws IOException {
-        try (Socket socket = new Socket(THAT.getAddress(), this.port);
-                  OutputStream os = socket.getOutputStream();
-                  ObjectOutputStream oos = new ObjectOutputStream(os)) {
-            oos.writeObject(object);
-        }
-    }
-
-    public void close() throws IOException {
-        ping.cancel();
-        ping.purge();
-    }
-
-    @Override
-    protected void finalize() throws IOException {
-        this.close();
-    }
-
-    protected static void sendThroughSocket(Socket socket, Object object) throws IOException {
-        new ObjectOutputStream(socket.getOutputStream()).writeObject(object);
     }
 
     public End getOtherEnd() {
-        return this.THAT;
+        return THAT;
+    }
+
+    public Object send(Object object) throws IOException, ClassNotFoundException {
+        if(object.equals("01101111 01101110 01100101 01010100 01101001 01101101 01100101 01000011 01101111 01101110 01101110 01100101 01100011 01110100 01101001 01101111 01101110") || object.equals("01101111 01101011")) {
+            throw new RestrictedObjectException();
+        }
+        else {
+            this.socket = new Socket(THAT.getAddress(), this.port);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+            objectOutputStream.writeObject(object);
+            objectOutputStream.flush();
+            Object reply = objectInputStream.readObject();
+            objectOutputStream.close();
+            objectInputStream.close();
+            socket.close();
+            socket = new Socket();
+            return reply;
+        }
+    }
+
+    public boolean isOpen() {
+        return this.open;
+    }
+
+    public enum ConnectionType {
+        ONE_TIME_CONNECTION,
+        STATIC
     }
 }
