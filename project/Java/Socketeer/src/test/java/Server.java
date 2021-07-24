@@ -18,8 +18,11 @@ public class Server extends End implements Listener {
 
     @EventHandler
     public void onReceived(ReceivedEvent event) throws Exception {
+        System.out.println(1);
         String message = (String) event.read(DataType.UTF);
+        System.out.println(2);
         event.reply("Mabes", DataType.UTF);
+        System.out.println(3);
         System.out.println(message);
     }
 }

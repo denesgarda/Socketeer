@@ -3,7 +3,6 @@ package com.denesgarda.Socketeer.data;
 import com.denesgarda.Socketeer.data.event.Listener;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
@@ -27,7 +26,7 @@ public class Connection {
     public Object send(Object object, DataType writeDataType, DataType readDataType) throws IOException, ClassNotFoundException {
         this.socket = new Socket(THAT.getAddress(), this.port);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(this.socket.getOutputStream());
-        ObjectInputStream objectInputStream = new ObjectInputStream(this.socket.getInputStream());
+        //ObjectInputStream objectInputStream = new ObjectInputStream(this.socket.getInputStream());
         if(writeDataType == DataType.UTF) {
             objectOutputStream.writeUTF((String) object);
         }
@@ -58,9 +57,12 @@ public class Connection {
         else if(writeDataType == DataType.OBJECT) {
             objectOutputStream.writeObject(object);
         }
+        System.out.println(3);
         Object response;
-        if(readDataType == DataType.UTF) {
+        /*if(readDataType == DataType.UTF) {
+            System.out.println(4);
             response = objectInputStream.readUTF();
+            System.out.println(5);
         }
         else if(readDataType == DataType.INTEGER) {
             response = objectInputStream.read();
@@ -96,7 +98,8 @@ public class Connection {
         objectInputStream.close();
         socket.close();
         socket = null;
-        return response;
+        return response;*/
+        return null;
     }
 
     public boolean isOpen() {

@@ -70,47 +70,47 @@ public class End {
                 while(THIS.listening) {
                     try {
                         Socket socket = serverSocket.accept();
-                        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                         Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket);
+                        System.out.println(0);
                         Event.callEvent(listener, new ReceivedEvent(connection) {
                             @Override
-                            public Object read(DataType readDataType) throws IOException, ClassNotFoundException {
-                                Object content;
+                            public Object read(DataType readDataType) throws Exception {
                                 if(readDataType == DataType.UTF) {
-                                    content = objectInputStream.readUTF();
+                                    //return objectInputStream.readUTF();
+                                    return "Mooboos";
                                 }
                                 else if(readDataType == DataType.INTEGER) {
-                                    content = objectInputStream.read();
+                                    return objectInputStream.read();
                                 }
                                 else if(readDataType == DataType.BYTE) {
-                                    content = objectInputStream.readByte();
+                                    return objectInputStream.readByte();
                                 }
                                 else if(readDataType == DataType.BYTE_ARRAY) {
-                                    content = objectInputStream.readAllBytes();
+                                    return objectInputStream.readAllBytes();
                                 }
                                 else if(readDataType == DataType.CHAR) {
-                                    content = objectInputStream.readChar();
+                                    return objectInputStream.readChar();
                                 }
                                 else if(readDataType == DataType.LONG) {
-                                    content = objectInputStream.readLong();
+                                    return objectInputStream.readLong();
                                 }
                                 else if(readDataType == DataType.FLOAT) {
-                                    content = objectInputStream.readFloat();
+                                    return objectInputStream.readFloat();
                                 }
                                 else if(readDataType == DataType.DOUBLE) {
-                                    content = objectInputStream.readDouble();
+                                    return objectInputStream.readDouble();
                                 }
                                 else if(readDataType == DataType.BOOLEAN) {
-                                    content = objectInputStream.readBoolean();
+                                    return objectInputStream.readBoolean();
                                 }
                                 else if(readDataType == DataType.OBJECT) {
-                                    content = objectInputStream.readObject();
+                                    return objectInputStream.readObject();
                                 }
                                 else {
                                     throw new IllegalStateException("Unexpected value: " + readDataType);
                                 }
-                                return content;
                             }
 
                             @Override
@@ -147,6 +147,7 @@ public class End {
                                 }
                             }
                         });
+                        System.out.println(9);
                         objectInputStream.close();
                         objectOutputStream.close();
                         socket.close();
