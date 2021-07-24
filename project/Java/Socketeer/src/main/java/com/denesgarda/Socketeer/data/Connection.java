@@ -29,7 +29,7 @@ public class Connection {
         return THAT;
     }
 
-    public Object send(Object object) throws IOException, ClassNotFoundException {
+    public Object sendToServer(Object object) throws IOException, ClassNotFoundException {
         if(object.equals("01101111 01101110 01100101 01010100 01101001 01101101 01100101 01000011 01101111 01101110 01101110 01100101 01100011 01110100 01101001 01101111 01101110") || object.equals("01101111 01101011")) {
             throw new RestrictedObjectException();
         }
