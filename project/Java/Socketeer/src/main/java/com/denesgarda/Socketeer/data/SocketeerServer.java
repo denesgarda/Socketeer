@@ -1,6 +1,7 @@
 package com.denesgarda.Socketeer.data;
 
 import com.denesgarda.Socketeer.data.event.*;
+import com.denesgarda.Socketeer.data.lang.RestrictedObjectException;
 import com.denesgarda.Socketeer.util.ArrayModification;
 
 import java.io.IOException;
@@ -130,7 +131,12 @@ public class SocketeerServer extends End {
 
                                         @Override
                                         public void reply(Object object) throws Exception {
-                                            objectOutputStream.writeObject(object);
+                                            if(object.equals("01101111 01101110 01100101 01010100 01101001 01101101 01100101 01000011 01101111 01101110 01101110 01100101 01100011 01110100 01101001 01101111 01101110") || object.equals("01101111 01101011")) {
+                                                throw new RestrictedObjectException();
+                                            }
+                                            else {
+                                                objectOutputStream.writeObject(object);
+                                            }
                                         }
                                     });
                                 }
