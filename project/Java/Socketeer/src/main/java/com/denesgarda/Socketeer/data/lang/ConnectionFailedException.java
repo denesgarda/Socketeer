@@ -2,6 +2,7 @@ package com.denesgarda.Socketeer.data.lang;
 
 /**
  * This is the exception that's thrown when a client fails to connect to the server
+ * @author denesgarda
  */
 public class ConnectionFailedException extends RuntimeException {
 
