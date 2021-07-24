@@ -1,5 +1,5 @@
 # Socketeer
-Java easy-to-use socket API! Just get the latest release [here] (not yet available) and add it as a dependency in your Java project.
+Java easy-to-use socket API! Just get the latest release [here](./builds/Socketeer_1.0.jar) and add it as a dependency in your Java project.
 
 ## Creating a server
 To create a server, you have to do the following:
