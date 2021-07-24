@@ -1,13 +1,13 @@
 package com.denesgarda.Socketeer.data;
 
 /**
- * This is the class that manages one-time actions within connections
+ * This is the class that manages one-time actions within connections.
  * @author denesgarda
  */
 public interface OneTimeAction {
 
     /**
-     * The action method that takes one Connection
+     * The action method to be performed within a one-time connection
      * @param connection The Connection to be used within the action
      * @throws Exception
      */

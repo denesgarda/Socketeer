@@ -3,13 +3,13 @@ package com.denesgarda.Socketeer.util;
 import java.util.Arrays;
 
 /**
- * Utilities used within the server to modify arrays
+ * Utilities used within the server to modify arrays.
  * @author denesgarda
  */
 public class ArrayModification {
 
     /**
-     * Append an element to the end of an array
+     * Append an element to the end of an array.
      * @param array The array the element should be added to
      * @param value The element to be added
      * @param <T> The type of array and element
@@ -22,7 +22,7 @@ public class ArrayModification {
     }
 
     /**
-     * Remove an element from an array
+     * Remove an element from an array.
      * @param array The array the element should be removed from
      * @param value The element to be removed
      * @param <T> The type of array and element
