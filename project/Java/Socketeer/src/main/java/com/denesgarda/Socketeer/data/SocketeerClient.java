@@ -9,13 +9,13 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 /**
- * This is the Client object
+ * This is the Client object.
  * @author denesgarda
  */
 public class SocketeerClient extends End {
 
     /**
-     * The constructor of SocketeerClient
+     * The constructor of SocketeerClient.
      * @throws UnknownHostException
      */
     protected SocketeerClient() throws UnknownHostException {
@@ -23,7 +23,7 @@ public class SocketeerClient extends End {
     }
 
     /**
-     * The method that creates and handles a one-time connection to a server
+     * The method that creates and handles a one-time connection to a server.
      * @param address The address of the server to connect to
      * @param port The port through which to connect
      * @param oneTimeAction The action the client should perform once it connects

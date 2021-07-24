@@ -9,43 +9,45 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
- * The connection established between a server and a client
+ * The connection established between a server and a client.
+ * Contains information about both ends of the server.
  * @author denesgarda
  */
 public class Connection {
 
     /**
-     * This end of the connection
+     * This end of the connection.
      */
     private End THIS;
 
     /**
-     * The other end of the connection
+     * The other end of the connection.
      */
     private End THAT;
 
     /**
-     * The port the connection was opened on
+     * The port the connection was opened on.
      */
     private int port;
 
     /**
-     * The listener of the server
+     * The listener of the server.
      */
     private Listener listener;
 
     /**
-     * The socket of the connection
+     * The socket of the connection.
      */
     private Socket socket;
 
     /**
-     * If the connection is open or closed
+     * If the connection is open or closed.
      */
     protected boolean open = true;
 
     /**
-     * The constructor of Connection
+     * The constructor of Connection.
+     * This should only be used within socketeer. Users should not manually construct connections, as to not cause unnecessary confusion and Exceptions.
      * @param THIS This end of the connection
      * @param THAT The other end of the connection
      * @param port The port the connection was opened on
@@ -61,7 +63,7 @@ public class Connection {
     }
 
     /**
-     * Get the other end of the connection
+     * Get the other end of the connection.
      * @return The other end of the connection
      */
     public End getOtherEnd() {
@@ -69,7 +71,9 @@ public class Connection {
     }
 
     /**
-     * Sends a message to the server that the client is connected to
+     * Sends a message to the server that the client is connected to.
+     * The server cannot reply to a client using this method.
+     * To reply, a server has to use the method in ReceivedEvent called reply(Object object).
      * @param object The object to be send to the server
      * @return The server's response
      * @throws IOException
@@ -95,7 +99,7 @@ public class Connection {
     }
 
     /**
-     * Check if the connection is open or closed
+     * Check if the connection is open or closed.
      * @return If the connection is open or closed
      */
     public boolean isOpen() {
@@ -103,12 +107,15 @@ public class Connection {
     }
 
     /**
-     * Connection types
+     * Connection types.
+     * Connection types can be used to differentiate between was a client tries to communicate with the server.
      */
     public enum ConnectionType {
 
         /**
-         * A one-time connection
+         * A one-time connection.
+         * A client can establish a one-time connection with the server using the connectOneTime method in SocketeerClient.
+         * A one-time connection allows the client to connect to the server, execute a set a predetermined tasks, then immediately disconnect without keeping the connection open for longer than absolutely necessary.
          */
         ONE_TIME_CONNECTION,
 
