@@ -40,7 +40,7 @@ public class SocketeerClient extends End {
         objectInputStream.close();
         socket.close();
         if(reply.equals("01101111 01101011")) {
-            Connection connection = new Connection(this, new End(address), port, new Listener() {}, socket);
+            Connection connection = new Connection(this, new End(address), port, new Listener() {}, socket, Connection.ConnectionType.ONE_TIME_CONNECTION);
             oneTimeAction.action(connection);
             connection.open = false;
 

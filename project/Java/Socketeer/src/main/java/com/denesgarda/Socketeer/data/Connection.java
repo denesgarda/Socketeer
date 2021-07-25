@@ -47,6 +47,11 @@ public class Connection {
     protected boolean open = true;
 
     /**
+     * The type of connection.
+     */
+    private final ConnectionType connectionType;
+
+    /**
      * The constructor of Connection.
      * This should only be used within socketeer. Users should not manually construct connections, as to not cause unnecessary confusion and Exceptions.
      * @param THIS This end of the connection
@@ -54,13 +59,15 @@ public class Connection {
      * @param port The port the connection was opened on
      * @param listener The listener of the server
      * @param socket The socket of the connection
+     * @param connectionType The type of connection
      */
-    protected Connection(End THIS, End THAT, int port, Listener listener, Socket socket) {
+    protected Connection(End THIS, End THAT, int port, Listener listener, Socket socket, ConnectionType connectionType) {
         this.THIS = THIS;
         this.THAT = THAT;
         this.port = port;
         this.listener = listener;
         this.socket = socket;
+        this.connectionType = connectionType;
     }
 
     /**
@@ -69,6 +76,14 @@ public class Connection {
      */
     public End getOtherEnd() {
         return THAT;
+    }
+
+    /**
+     * Gets the connection's connection type
+     * @return The connection's connection type
+     */
+    public ConnectionType getConnectionType() {
+        return connectionType;
     }
 
     /**
@@ -113,6 +128,38 @@ public class Connection {
     }
 
     /**
+     * Closes the connection if it's open.
+     * Only safely closes connections.
+     * If a ONE_TIME_CONNECTION or UNKNOWN type of connection is to be closed (not recommended), then use the kill() method.
+     */
+    public void close() {
+        if(open) {
+            if (connectionType == ConnectionType.STATIC) {
+                open = false;
+            }
+            else {
+                throw new IllegalStateException("Cannot close connections with type " + connectionType);
+            }
+        }
+        else {
+            throw new IllegalStateException("Connection is already closed");
+        }
+    }
+
+    /**
+     * Closes the connection if it's open, regardless of what type of connection it is.
+     * Not recommended for use and may not always work as intended.
+     */
+    public void kill() {
+        if(open) {
+            open = false;
+        }
+        else {
+            throw new IllegalStateException("Connection is already closed");
+        }
+    }
+
+    /**
      * Connection types.
      * Connection types can be used to differentiate between was a client tries to communicate with the server.
      */
@@ -129,6 +176,12 @@ public class Connection {
          * A static connection that stays open until closed or killed
          * @apiNote Not yet implemented
          */
-        STATIC
+        STATIC,
+
+        /**
+         * An unknown type of connection.
+         * The server cannot always determine what kind of connection a client is using, so it'll contain this.
+         */
+        UNKNOWN
     }
 }

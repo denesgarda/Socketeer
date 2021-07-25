@@ -113,7 +113,7 @@ public class SocketeerServer extends End {
                             Socket socket = serverSocket.accept();
                             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-                            Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket);
+                            Connection connection = new Connection(THIS, new End((((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress()).toString().replace("/","")), port, listener, socket, Connection.ConnectionType.UNKNOWN);
                             Event.callEvent(listener, new ClientConnectionAttemptedEvent(connection.getOtherEnd()));
                             Object read = objectInputStream.readObject();
                             if(connectionThrottle == 0 || openConnections.length < connectionThrottle) {
