@@ -8,7 +8,7 @@ import com.denesgarda.Socketeer.data.Connection;
  * It will only work if the server recognizes the client and OKs the connection.
  * @author denesgarda
  */
-public class ClientConnectedEvent extends Event {
+public class ClientConnectedEvent extends ConnectionEvent {
 
     /**
      * The connection that is created when the client and the server connect.

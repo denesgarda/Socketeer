@@ -7,7 +7,7 @@ import com.denesgarda.Socketeer.data.End;
  * If the client is able to connect with the server, even if the server rejects the connection, this event will still fire.
  * @author denesgarda
  */
-public class ClientConnectionAttemptedEvent extends Event {
+public class ClientConnectionAttemptedEvent extends ConnectionEvent {
 
     /**
      * The client that is trying to connect

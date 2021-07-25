@@ -8,7 +8,7 @@ import com.denesgarda.Socketeer.data.End;
  * If the server decides that the client must be rejected, it tells the client and calls this event.
  * @author denesgarda
  */
-public class ClientConnectionFailedEvent extends Event {
+public class ClientConnectionFailedEvent extends ConnectionEvent {
 
     /**
      * The client that tried to connect

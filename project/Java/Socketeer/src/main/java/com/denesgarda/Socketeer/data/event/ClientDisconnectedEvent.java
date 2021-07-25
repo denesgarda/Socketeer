@@ -7,7 +7,7 @@ import com.denesgarda.Socketeer.data.Connection;
  * Once the client formally disconnects or a client hangs for the set connection timeout time of the server, the server will register it as disconnected and fire this event.
  * @author denesgarda
  */
-public class ClientDisconnectedEvent extends Event {
+public class ClientDisconnectedEvent extends ConnectionEvent {
 
     /**
      * The already closed connection that was used for server and client communication.
