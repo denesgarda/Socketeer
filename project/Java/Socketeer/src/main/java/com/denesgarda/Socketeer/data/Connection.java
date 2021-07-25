@@ -1,6 +1,7 @@
 package com.denesgarda.Socketeer.data;
 
 import com.denesgarda.Socketeer.data.event.Listener;
+import com.denesgarda.Socketeer.data.lang.ConnectionClosedException;
 import com.denesgarda.Socketeer.data.lang.RestrictedObjectException;
 
 import java.io.IOException;
@@ -80,21 +81,26 @@ public class Connection {
      * @throws ClassNotFoundException
      */
     public Object sendToServer(Object object) throws IOException, ClassNotFoundException {
-        if(object.equals("01101111 01101110 01100101 01010100 01101001 01101101 01100101 01000011 01101111 01101110 01101110 01100101 01100011 01110100 01101001 01101111 01101110") || object.equals("01101111 01101011")) {
-            throw new RestrictedObjectException();
+        if(open) {
+            if (object.equals("01101111 01101110 01100101 01010100 01101001 01101101 01100101 01000011 01101111 01101110 01101110 01100101 01100011 01110100 01101001 01101111 01101110") || object.equals("01101111 01101011")) {
+                throw new RestrictedObjectException();
+            }
+            else {
+                this.socket = new Socket(THAT.getAddress(), this.port);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                objectOutputStream.writeObject(object);
+                objectOutputStream.flush();
+                Object reply = objectInputStream.readObject();
+                objectOutputStream.close();
+                objectInputStream.close();
+                socket.close();
+                socket = new Socket();
+                return reply;
+            }
         }
         else {
-            this.socket = new Socket(THAT.getAddress(), this.port);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-            objectOutputStream.writeObject(object);
-            objectOutputStream.flush();
-            Object reply = objectInputStream.readObject();
-            objectOutputStream.close();
-            objectInputStream.close();
-            socket.close();
-            socket = new Socket();
-            return reply;
+            throw new ConnectionClosedException();
         }
     }
 
