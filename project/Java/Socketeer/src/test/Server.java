@@ -25,7 +25,8 @@ public class Server extends SocketeerServer implements EventListener {
     @EventHandler
     public void onReceived(ReceivedEvent event) throws IOException {
         System.out.println("[" + event.getConnection().getOtherEnd().getAddress() + "]: " + event.getData());
-        event.getConnection().send("Response");
+        event.getConnection().send("Response 1");
+        event.getConnection().send("Response 2");
     }
 
     @EventHandler

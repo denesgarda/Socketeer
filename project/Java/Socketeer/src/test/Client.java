@@ -12,11 +12,10 @@ public class Client extends SocketeerClient implements EventListener {
     public Client() throws IOException {
         this.setEventListener(this);
         Connection connection = this.connect("localhost", 9000);
-        connection.send("I'll wait...");
-        System.out.println(1);
-        String response = connection.awaitResponse();
-        System.out.println(2);
-        System.out.println(response);
+        connection.send("ping 1");
+        connection.send("ping 2");
+        //String response = connection.awaitResponse();
+        //System.out.println(response);
     }
 
     @EventHandler
