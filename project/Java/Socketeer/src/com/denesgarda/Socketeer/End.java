@@ -7,7 +7,7 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 
 public class End {
-    public static String VERSION = "2.0";
+    public static String VERSION = "2.1";
 
     private final String address;
     protected EventListener eventListener = new EventListener() {};
