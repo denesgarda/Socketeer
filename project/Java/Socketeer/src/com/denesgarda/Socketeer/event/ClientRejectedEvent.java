@@ -20,6 +20,7 @@ public class ClientRejectedEvent extends ConnectionEvent {
     }
 
     public enum Reason {
-        CONNECTION_THROTTLE
+        CONNECTION_THROTTLE,
+        INCOMPATIBLE_VERSION
     }
 }

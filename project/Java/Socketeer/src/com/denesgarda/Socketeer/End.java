@@ -7,6 +7,8 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 
 public class End {
+    public static String VERSION = "2.0";
+
     private final String address;
     protected EventListener eventListener = new EventListener() {};
     protected LinkedList<Connection> pendingConnections = new LinkedList<>();

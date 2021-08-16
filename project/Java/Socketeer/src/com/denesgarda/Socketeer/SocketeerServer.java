@@ -60,13 +60,18 @@ public class SocketeerServer extends End {
                                             String incoming = read();
                                             if (incoming != null) {
                                                 if (pendingConnections.contains(connection)) {
-                                                    if (connectionThrottle == 0 || connections.size() < connectionThrottle) {
-                                                        write("0");
+                                                    if(!End.VERSION.equals(incoming)) {
+                                                        write("version: " + End.VERSION);
+                                                        connection.close();
+                                                        Event.callEvent(eventListener, new ClientRejectedEvent(connection, ClientRejectedEvent.Reason.INCOMPATIBLE_VERSION));
+                                                    }
+                                                    else if (connectionThrottle == 0 || connections.size() < connectionThrottle) {
+                                                        write("code: 0");
                                                         pendingConnections.remove(connection);
                                                         connections.add(connection);
                                                         Event.callEvent(eventListener, new ClientConnectedEvent(connection));
                                                     } else {
-                                                        write("1");
+                                                        write("code: 1");
                                                         connection.close();
                                                         Event.callEvent(eventListener, new ClientRejectedEvent(connection, ClientRejectedEvent.Reason.CONNECTION_THROTTLE));
                                                     }
