@@ -1,9 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="Socketeer:jar">
-    <output-path>$PROJECT_DIR$/../../../builds</output-path>
-    <root id="archive" name="Socketeer.jar">
-      <element id="module-output" name="Socketeer" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/../dependencies/Prop4j_1.2.jar" path-in-jar="/" />
-    </root>
-  </artifact>
-</component>
