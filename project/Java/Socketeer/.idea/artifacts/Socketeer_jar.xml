@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Socketeer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Socketeer_jar</output-path>
+    <root id="archive" name="Socketeer.jar">
+      <element id="module-output" name="Socketeer" />
+    </root>
+  </artifact>
+</component>
