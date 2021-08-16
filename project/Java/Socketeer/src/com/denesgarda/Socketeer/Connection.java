@@ -8,23 +8,30 @@ public class Connection {
     private final End THAT;
     private final Socket socket;
     private End host;
+    private BufferedReader in;
+    private BufferedWriter out;
 
-    protected Connection(End THIS, End THAT, Socket socket, End host) {
+    protected Connection(End THIS, End THAT, Socket socket, BufferedReader in, BufferedWriter out) {
         this.THIS = THIS;
         this.THAT = THAT;
         this.socket = socket;
-        this.host = host;
+        this.host = THIS;
+        this.in = in;
+        this.out = out;
     }
 
     public void send(String data) throws IOException {
-        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        bufferedWriter.write(data);
-        bufferedWriter.newLine();
-        bufferedWriter.flush();
+        out.write(data);
+        out.newLine();
+        out.flush();
     }
 
     public End getOtherEnd() {
         return THAT;
+    }
+
+    public Socket getSocket() {
+        return socket;
     }
 
     public void close() throws IOException {
@@ -34,7 +41,6 @@ public class Connection {
     }
 
     public String awaitResponse() throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        return bufferedReader.readLine();
+        return in.readLine();
     }
 }

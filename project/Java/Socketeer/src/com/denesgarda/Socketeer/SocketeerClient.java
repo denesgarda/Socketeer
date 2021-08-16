@@ -19,14 +19,14 @@ public class SocketeerClient extends End {
     public Connection connect(String address, int port) throws IOException {
         Socket accept = new Socket(address, port);
         String otherAddress = ((InetSocketAddress) accept.getRemoteSocketAddress()).getAddress().toString().replace("/", "");
-        Connection connection = new Connection(this, new End(otherAddress), accept, this);
+        final BufferedWriter out = new BufferedWriter(new OutputStreamWriter(accept.getOutputStream()));
+        final BufferedReader in = new BufferedReader(new InputStreamReader(accept.getInputStream()));
+        Connection connection = new Connection(this, new End(otherAddress), accept, in, out);
         pendingConnections.add(connection);
-        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(accept.getOutputStream()));
-        bufferedWriter.write(End.VERSION);
-        bufferedWriter.newLine();
-        bufferedWriter.flush();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(accept.getInputStream()));
-        String response = bufferedReader.readLine();
+        out.write(End.VERSION);
+        out.newLine();
+        out.flush();
+        String response = in.readLine();
         if(response.equals("code: 0")) {
             pendingConnections.remove(connection);
             connections.add(connection);
@@ -38,19 +38,11 @@ public class SocketeerClient extends End {
                     try {
                         socket = accept;
                         while(!socket.isClosed()) {
-                            /*BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                            if(in.ready()) {
-                                String incoming = read();
-                                Event.callEvent(eventListener, new ReceivedEvent(connection, incoming));
-                            }*/
-                            throw new ConnectException("Connection lost");
-                            /*String incoming = read();
-                            if(incoming != null) {
-                                Event.callEvent(eventListener, new ReceivedEvent(connection, incoming));
-                            }
-                            else {
+                            String incoming = read();
+                            if(incoming == null) {
                                 throw new ConnectException("Connection lost");
-                            }*/
+                            }
+                            Event.callEvent(eventListener, new ReceivedEvent(connection, incoming));
                         }
                     }
                     catch(SocketException e) {
@@ -67,15 +59,13 @@ public class SocketeerClient extends End {
                 }
 
                 private String read() throws IOException {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    return bufferedReader.readLine();
+                    return in.readLine();
                 }
 
                 private void write(String content) throws IOException {
-                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                    bufferedWriter.write(content);
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
+                    out.write(content);
+                    out.newLine();
+                    out.flush();
                 }
             }).start();
         }

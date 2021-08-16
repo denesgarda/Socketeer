@@ -47,16 +47,15 @@ public class SocketeerServer extends End {
                         while (listening) {
                             Socket accept = serverSocket.accept();
                             String otherAddress = ((InetSocketAddress) accept.getRemoteSocketAddress()).getAddress().toString().replace("/", "");
-                            Connection connection = new Connection(THIS, new End(otherAddress), accept, THIS);
+                            final BufferedReader in = new BufferedReader(new InputStreamReader(accept.getInputStream()));
+                            final BufferedWriter out = new BufferedWriter(new OutputStreamWriter(accept.getOutputStream()));
+                            Connection connection = new Connection(THIS, new End(otherAddress), accept, in, out);
                             pendingConnections.add(connection);
                             new Thread(new Runnable() {
-                                private Socket socket;
-
                                 @Override
                                 public void run() {
                                     try {
-                                        socket = accept;
-                                        while (!socket.isClosed()) {
+                                        while (!accept.isClosed()) {
                                             String incoming = read();
                                             if (incoming != null) {
                                                 if (pendingConnections.contains(connection)) {
@@ -96,15 +95,13 @@ public class SocketeerServer extends End {
                                 }
 
                                 private String read() throws IOException {
-                                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                                    return bufferedReader.readLine();
+                                    return in.readLine();
                                 }
 
                                 private void write(String content) throws IOException {
-                                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                                    bufferedWriter.write(content);
-                                    bufferedWriter.newLine();
-                                    bufferedWriter.flush();
+                                    out.write(content);
+                                    out.newLine();
+                                    out.flush();
                                 }
                             }).start();
                         }
