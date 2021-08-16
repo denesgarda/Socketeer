@@ -43,4 +43,8 @@ public class Connection {
     public String awaitResponse() throws IOException {
         return in.readLine();
     }
+
+    public boolean isClosed() {
+        return socket.isClosed();
+    }
 }
