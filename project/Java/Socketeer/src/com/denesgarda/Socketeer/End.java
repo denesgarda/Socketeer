@@ -10,7 +10,6 @@ public class End {
     public static String VERSION = "2.1";
 
     private final String address;
-    protected EventListener eventListener = new EventListener() {};
     protected LinkedList<Connection> pendingConnections = new LinkedList<>();
     protected LinkedList<Connection> connections = new LinkedList<>();
 
@@ -20,10 +19,6 @@ public class End {
 
     protected End(String address) {
         this.address = address;
-    }
-
-    public void setEventListener(EventListener eventListener) {
-        this.eventListener = eventListener;
     }
 
     public String getAddress() {

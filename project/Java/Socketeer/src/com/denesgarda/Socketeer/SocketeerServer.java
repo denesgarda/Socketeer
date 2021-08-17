@@ -7,6 +7,7 @@ import java.net.*;
 import java.util.LinkedList;
 
 public class SocketeerServer extends End {
+    private EventListener eventListener = new EventListener() {};
     private int connectionThrottle = 50;
     private boolean listening = false;
 
@@ -127,5 +128,9 @@ public class SocketeerServer extends End {
 
     public boolean isListening() {
         return listening;
+    }
+
+    public void setEventListener(EventListener eventListener) {
+        this.eventListener = eventListener;
     }
 }

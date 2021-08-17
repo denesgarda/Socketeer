@@ -2,6 +2,7 @@ package com.denesgarda.Socketeer;
 
 import com.denesgarda.Socketeer.err.ConnectionRejectedException;
 import com.denesgarda.Socketeer.event.Event;
+import com.denesgarda.Socketeer.event.EventListener;
 import com.denesgarda.Socketeer.event.ReceivedEvent;
 
 import java.io.*;
@@ -9,10 +10,19 @@ import java.net.*;
 import java.util.LinkedList;
 
 public class SocketeerClient extends End {
+    private EventListener eventListener = new EventListener() {};
     private LinkedList<Connection> connections = new LinkedList<>();
 
     protected SocketeerClient() throws UnknownHostException {
 
+    }
+
+    public LinkedList<Connection> getPendingConnections() {
+        return pendingConnections;
+    }
+
+    public LinkedList<Connection> getConnections() {
+        return connections;
     }
 
     public Connection connect(String address, int port) throws IOException {
@@ -77,5 +87,9 @@ public class SocketeerClient extends End {
             throw new ConnectionRejectedException("Incompatible version; client on " + End.VERSION + "; server on " + response.substring(9));
         }
         return connection;
+    }
+
+    public void setEventListener(EventListener eventListener) {
+        this.eventListener = eventListener;
     }
 }
