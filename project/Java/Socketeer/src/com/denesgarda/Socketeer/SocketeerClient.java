@@ -1,6 +1,5 @@
 package com.denesgarda.Socketeer;
 
-import com.denesgarda.Socketeer.End;
 import com.denesgarda.Socketeer.err.ConnectionRejectedException;
 import com.denesgarda.Socketeer.event.Event;
 import com.denesgarda.Socketeer.event.ReceivedEvent;
