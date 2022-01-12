@@ -57,30 +57,31 @@ public class SocketeerServer extends End {
                                 public void run() {
                                     try {
                                         while (!accept.isClosed()) {
-                                            String incoming = read();
-                                            if (incoming != null) {
-                                                if (pendingConnections.contains(connection)) {
-                                                    if(!End.VERSION.equals(incoming)) {
-                                                        write("version: " + End.VERSION);
-                                                        connection.close();
-                                                        Event.callEvent(eventListener, new ClientRejectedEvent(connection, ClientRejectedEvent.Reason.INCOMPATIBLE_VERSION));
+                                            if (accept.getInputStream().available() != 0) {
+                                                String incoming = read();
+                                                if (incoming != null) {
+                                                    if (pendingConnections.contains(connection)) {
+                                                        if (!End.VERSION.equals(incoming)) {
+                                                            write("version: " + End.VERSION);
+                                                            connection.close();
+                                                            Event.callEvent(eventListener, new ClientRejectedEvent(connection, ClientRejectedEvent.Reason.INCOMPATIBLE_VERSION));
+                                                        } else if (connectionThrottle == 0 || connections.size() < connectionThrottle) {
+                                                            write("code: 0");
+                                                            pendingConnections.remove(connection);
+                                                            connections.add(connection);
+                                                            Event.callEvent(eventListener, new ClientConnectedEvent(connection));
+                                                        } else {
+                                                            write("code: 1");
+                                                            connection.close();
+                                                            Event.callEvent(eventListener, new ClientRejectedEvent(connection, ClientRejectedEvent.Reason.CONNECTION_THROTTLE));
+                                                        }
+                                                    } else if (connections.contains(connection)) {
+                                                        Event.callEvent(eventListener, new ReceivedEvent(connection, incoming));
                                                     }
-                                                    else if (connectionThrottle == 0 || connections.size() < connectionThrottle) {
-                                                        write("code: 0");
-                                                        pendingConnections.remove(connection);
-                                                        connections.add(connection);
-                                                        Event.callEvent(eventListener, new ClientConnectedEvent(connection));
-                                                    } else {
-                                                        write("code: 1");
-                                                        connection.close();
-                                                        Event.callEvent(eventListener, new ClientRejectedEvent(connection, ClientRejectedEvent.Reason.CONNECTION_THROTTLE));
-                                                    }
-                                                } else if (connections.contains(connection)) {
-                                                    Event.callEvent(eventListener, new ReceivedEvent(connection, incoming));
+                                                } else {
+                                                    connection.close();
+                                                    Event.callEvent(eventListener, new ClientDisconnectedEvent(connection));
                                                 }
-                                            } else {
-                                                connection.close();
-                                                Event.callEvent(eventListener, new ClientDisconnectedEvent(connection));
                                             }
                                         }
                                     } catch (SocketException e) {
