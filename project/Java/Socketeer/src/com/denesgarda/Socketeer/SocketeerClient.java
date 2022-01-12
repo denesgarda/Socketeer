@@ -47,11 +47,13 @@ public class SocketeerClient extends End {
                     try {
                         socket = accept;
                         while(!socket.isClosed()) {
-                            String incoming = read();
-                            if(incoming == null) {
-                                throw new ConnectException("Connection lost");
+                            if (accept.getInputStream().available() != 0) {
+                                String incoming = read();
+                                if (incoming == null) {
+                                    throw new ConnectException("Connection lost");
+                                }
+                                Event.callEvent(eventListener, new ReceivedEvent(connection, incoming));
                             }
-                            Event.callEvent(eventListener, new ReceivedEvent(connection, incoming));
                         }
                     }
                     catch(SocketException e) {
