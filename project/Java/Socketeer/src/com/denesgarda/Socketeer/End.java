@@ -1,17 +1,16 @@
 package com.denesgarda.Socketeer;
 
-import com.denesgarda.Socketeer.event.EventListener;
+import com.denesgarda.Socketeer.event.Event;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 
-public class End {
-    public static String VERSION = "2.1";
+public abstract class End {
+    public static final String VERSION = "3.0";
+    protected LinkedList<Connection> connections = new LinkedList<>();
 
     private final String address;
-    protected LinkedList<Connection> pendingConnections = new LinkedList<>();
-    protected LinkedList<Connection> connections = new LinkedList<>();
 
     protected End() throws UnknownHostException {
         address = InetAddress.getLocalHost().getHostName();
@@ -24,4 +23,6 @@ public class End {
     public String getAddress() {
         return address;
     }
+
+    public abstract void onEvent(Event event);
 }
