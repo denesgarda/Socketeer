@@ -30,10 +30,10 @@ public class Server extends SocketeerServer {
                         if (nicknames.contains(s)) {
                             ((ClientConnectEvent) event).getConnection().send("Nickname is taken");
                         } else {
-                            for (Connection connection : connections) {
+                            nicknames.add(s);
+                            clients.add(((ClientConnectEvent) event).getConnection());
+                            for (Connection connection : clients) {
                                 connection.send(s + " joined");
-                                nicknames.add(s);
-                                clients.add(((ClientConnectEvent) event).getConnection());
                             }
                             System.out.println(s + " joined");
                         }
@@ -41,17 +41,18 @@ public class Server extends SocketeerServer {
                 });
             }
             if (event instanceof ClientDisconnectEvent) {
-                for (Connection connection : connections) {
-                    connection.send(nicknames.get(clients.indexOf()) + " left");
-                    nicknames.remove(clients.indexOf(connection));
-                    clients.remove(connection);
+                for (Connection connection : clients) {
+                    connection.send(nicknames.get(clients.indexOf(((ClientDisconnectEvent) event).getConnection())) + " left");
                 }
-                System.out.println(nicknames.get(clients.indexOf(connection)) + " left");
+                System.out.println(nicknames.get(clients.indexOf(((ClientDisconnectEvent) event).getConnection())) + " left");
+                nicknames.remove(clients.indexOf(((ClientDisconnectEvent) event).getConnection()));
+                clients.remove(((ClientDisconnectEvent) event).getConnection());
             }
             if (event instanceof ReceiveEvent) {
-                for (Connection connection : connections) {
-                    connection.send("[" + nicknames.get(clients.indexOf(connection)) + "]: " + ((ReceiveEvent) event).getData());
+                for (Connection connection : clients) {
+                    connection.send("[" + nicknames.get(clients.indexOf(((ReceiveEvent) event).getConnection())) + "]: " + ((ReceiveEvent) event).getData());
                 }
+                System.out.println("[" + nicknames.get(clients.indexOf(((ReceiveEvent) event).getConnection())) + "]: " + ((ReceiveEvent) event).getData());
             }
         } catch (Exception e) {
             e.printStackTrace();

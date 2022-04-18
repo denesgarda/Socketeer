@@ -1,0 +1,38 @@
+@Override
+public void onEvent(Event event) {
+    try {
+        if (event instanceof ClientConnectEvent) {
+            ((ClientConnectEvent) event).getConnection().nextIn(new Queueable() {
+                @Override
+                public void nextIn(String s) throws IOException {
+                    if (nicknames.contains(s)) {
+                        ((ClientConnectEvent) event).getConnection().send("Nickname is taken");
+                    } else {
+                        for (Connection connection : connections) {
+                            connection.send(s + " joined");
+                        }
+                        nicknames.add(s);
+                        clients.add(((ClientConnectEvent) event).getConnection());
+                        System.out.println(s + " joined");
+                    }
+                }
+            });
+        }
+        if (event instanceof ClientDisconnectEvent) {
+            for (Connection connection : connections) {
+                connection.send(nicknames.get(clients.indexOf(((ClientDisconnectEvent) event).getConnection())) + " left");
+            }
+            nicknames.remove(clients.indexOf(((ClientDisconnectEvent) event).getConnection()));
+            clients.remove(((ClientDisconnectEvent) event).getConnection());
+            System.out.println(nicknames.get(clients.indexOf(((ClientDisconnectEvent) event).getConnection())) + " left");
+        }
+        if (event instanceof ReceiveEvent) {
+            for (Connection connection : connections) {
+                connection.send("[" + nicknames.get(clients.indexOf(((ReceiveEvent) event).getConnection())) + "]: " + ((ReceiveEvent) event).getData());
+            }
+            System.out.println("[" + nicknames.get(clients.indexOf(((ReceiveEvent) event).getConnection())) + "]: " + ((ReceiveEvent) event).getData());
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}

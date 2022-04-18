@@ -10,7 +10,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../builds/Java/Socketeer_3.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../builds/Java/Socketeer_3.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
