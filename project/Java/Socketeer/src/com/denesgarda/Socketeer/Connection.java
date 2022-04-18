@@ -2,7 +2,7 @@ package com.denesgarda.Socketeer;
 
 import com.denesgarda.Socketeer.event.ClientDisconnectEvent;
 import com.denesgarda.Socketeer.event.ReceiveEvent;
-import com.denesgarda.Socketeer.event.ServerCloseEvent;
+import com.denesgarda.Socketeer.event.ServerConnectionCloseEvent;
 
 import java.io.*;
 import java.net.Socket;
@@ -37,10 +37,10 @@ public class Connection {
                         }
                     } catch (IOException e) {
                         if (THIS instanceof SocketeerServer) {
-                            THIS.onEvent(new ClientDisconnectEvent(THAT));
+                            THIS.onEvent(new ClientDisconnectEvent(Connection.this));
                         }
                         if (THIS instanceof SocketeerClient) {
-                            THIS.onEvent(new ServerCloseEvent());
+                            THIS.onEvent(new ServerConnectionCloseEvent(Connection.this));
                         }
                         try {
                             close();
