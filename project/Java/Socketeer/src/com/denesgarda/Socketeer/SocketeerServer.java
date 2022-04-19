@@ -80,12 +80,29 @@ public abstract class SocketeerServer extends End {
             serverSocket.close();
             listening = false;
             serverThread.interrupt();
+        }
+        else {
+            throw new IllegalStateException("Nothing to stop");
+        }
+    }
+
+    public void stop() throws IOException {
+        if(listening) {
+            serverSocket.close();
+            listening = false;
+            serverThread.interrupt();
             for (Connection connection : connections) {
                 connection.close();
             }
         }
         else {
             throw new IllegalStateException("Nothing to stop");
+        }
+    }
+
+    public void close() throws IOException {
+        for (Connection connection : connections) {
+            connection.close();
         }
     }
 
