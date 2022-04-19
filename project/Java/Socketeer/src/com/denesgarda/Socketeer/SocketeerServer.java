@@ -59,6 +59,7 @@ public abstract class SocketeerServer extends End {
 
                                 }
                             }, socket, in, out);
+                            connections.add(connection);
                             onEvent(new ClientConnectEvent(connection));
                         }
                     } catch (SocketException e) {
