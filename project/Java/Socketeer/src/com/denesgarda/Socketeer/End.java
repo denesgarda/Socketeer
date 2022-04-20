@@ -16,7 +16,7 @@ public abstract class End {
     /**
      * The current Socketeer version
      */
-    public static final String VERSION = "3.3";
+    public static final String VERSION = "3.4";
 
     /**
      * A list of all the open connections
