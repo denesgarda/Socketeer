@@ -113,6 +113,42 @@ public class Connection {
     }
 
     /**
+     * Returns the next response in the queue while pausing the current thread
+     * @return The next response
+     */
+    public String nextResponse() {
+        final String[] response = new String[1];
+        nextIn(new Queueable() {
+            @Override
+            public void nextIn(String data) throws IOException {
+                response[0] = data;
+            }
+        });
+        while (response[0] == null) {
+
+        }
+        return response[0];
+    }
+
+    /**
+     * Returns the immediate response in the queue while pausing the current thread
+     * @return The immediate response
+     */
+    public String awaitResponse() {
+        final String[] response = new String[1];
+        queue.addFirst(new Queueable() {
+            @Override
+            public void nextIn(String data) throws IOException {
+                response[0] = data;
+            }
+        });
+        while (response[0] == null) {
+
+        }
+        return response[0];
+    }
+
+    /**
      * Gets the local end of the connection
      * @return The local end
      */
