@@ -16,7 +16,7 @@ public abstract class End {
     /**
      * The current Socketeer version
      */
-    public static final String VERSION = "3.4";
+    public static final String VERSION = "3.5";
 
     /**
      * A list of all the open connections
@@ -27,6 +27,11 @@ public abstract class End {
      * The address of either the server or client
      */
     private final String address;
+
+    /**
+     * The time in milliseconds that the server or client waits before firing an event
+     */
+    protected int buffer;
 
     /**
      * The default constructor of End
@@ -51,6 +56,22 @@ public abstract class End {
      */
     public String getAddress() {
         return address;
+    }
+
+    /**
+     * Sets the event buffer
+     * @param milliseconds The buffer time in milliseconds
+     */
+    public void setBuffer(int milliseconds) {
+        buffer = milliseconds;
+    }
+
+    /**
+     * Gets the event buffer
+     * @return The buffer time in milliseconds
+     */
+    public int getBuffer() {
+        return buffer;
     }
 
     /**
