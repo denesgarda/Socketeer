@@ -73,14 +73,44 @@ public class Connection {
                             queue.get(0).nextIn(data);
                             queue.remove(queue.get(0));
                         } else {
-                            THIS.onEvent(new ReceiveEvent(Connection.this, data));
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        Thread.sleep(THIS.buffer);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    THIS.onEvent(new ReceiveEvent(Connection.this, data));
+                                }
+                            }).start();
                         }
                     } catch (IOException e) {
                         if (THIS instanceof SocketeerServer) {
-                            THIS.onEvent(new ClientDisconnectEvent(Connection.this));
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        Thread.sleep(THIS.buffer);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    THIS.onEvent(new ClientDisconnectEvent(Connection.this));
+                                }
+                            }).start();
                         }
                         if (THIS instanceof SocketeerClient) {
-                            THIS.onEvent(new ServerConnectionCloseEvent(Connection.this));
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        Thread.sleep(THIS.buffer);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    THIS.onEvent(new ServerConnectionCloseEvent(Connection.this));
+                                }
+                            }).start();
                         }
                         try {
                             close();

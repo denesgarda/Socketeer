@@ -93,7 +93,17 @@ public abstract class SocketeerServer extends End {
                                 }
                             }, socket, in, out);
                             connections.add(connection);
-                            onEvent(new ClientConnectEvent(connection));
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        Thread.sleep(buffer);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    onEvent(new ClientConnectEvent(connection));
+                                }
+                            }).start();
                         }
                     } catch (SocketException e) {
                         if (listening) {
